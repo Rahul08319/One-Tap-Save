@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.0cd9cbaa6a334b1c9082b74756cb0310",
+  "appName": "One Tap Goalkeeper",
+  "webDir": "dist",
+  "server": {
+    "url": "https://0cd9cbaa-6a33-4b1c-9082-b74756cb0310.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
