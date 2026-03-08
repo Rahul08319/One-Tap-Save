@@ -2,6 +2,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Direction, GameState, GameScore, Difficulty } from './types';
 import { playKickSound, playSaveSound, playGoalSound, playStreakSound, playComboSound, startCrowdAmbience, stopCrowdAmbience, crowdCheer, crowdGroan } from './sounds';
 import { updateHighScore } from './highScores';
+import { hapticSave, hapticGoal, hapticStreak, hapticPowerUp } from './haptics';
+import { getDailyShotSequence, getDailyRoundCount, saveDailyRecord } from './dailyChallenge';
+import { ActivePowerUp, shouldAwardPowerUp, getRandomPowerUp, POWER_UP_CONFIG } from './powerUps';
 
 const MAX_GOALS = 3;
 
@@ -10,6 +13,8 @@ const DIFFICULTY_SPEEDS: Record<Difficulty, { base: number; increment: number }>
   medium: { base: 0.018, increment: 0.003 },
   hard: { base: 0.025, increment: 0.004 },
 };
+
+export type GameMode = 'classic' | 'daily';
 
 export function useGameEngine() {
   const [gameState, setGameState] = useState<GameState>('menu');
@@ -30,15 +35,22 @@ export function useGameEngine() {
   const [comboDirection, setComboDirection] = useState<Direction | null>(null);
   const [showCombo, setShowCombo] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [gameMode, setGameMode] = useState<GameMode>('classic');
+  const [activePowerUp, setActivePowerUp] = useState<ActivePowerUp | null>(null);
+  const [showPowerUp, setShowPowerUp] = useState(false);
+  const [wideDiveActive, setWideDiveActive] = useState(false);
   const animFrameRef = useRef<number>(0);
   const hasInputRef = useRef(false);
+  const ballProgressAtDiveRef = useRef(0);
+  const dailySequenceRef = useRef<Direction[]>([]);
+  const dailyRoundRef = useRef(0);
 
   const getRandomDirection = (): Direction => {
     const dirs: Direction[] = ['left', 'center', 'right'];
     return dirs[Math.floor(Math.random() * dirs.length)];
   };
 
-  const startGame = useCallback((diff?: Difficulty) => {
+  const startGame = useCallback((diff?: Difficulty, mode: GameMode = 'classic') => {
     const d = diff || selectedDifficulty;
     setSelectedDifficulty(d);
     setScore({ saves: 0, goals: 0, round: 1, streak: 0, bestStreak: 0 });
@@ -47,47 +59,87 @@ export function useGameEngine() {
     setComboMultiplier(1);
     setComboDirection(null);
     setTotalPoints(0);
+    setGameMode(mode);
+    setActivePowerUp(null);
+    setShowPowerUp(false);
+    setWideDiveActive(false);
+
+    if (mode === 'daily') {
+      dailySequenceRef.current = getDailyShotSequence();
+      dailyRoundRef.current = 0;
+      setSelectedDifficulty('medium'); // Daily is always medium
+    }
+
     setGameState('ready');
     startCrowdAmbience();
   }, [selectedDifficulty]);
 
   const startRound = useCallback(() => {
-    const dir = getRandomDirection();
+    let dir: Direction;
+    if (gameMode === 'daily') {
+      dir = dailySequenceRef.current[dailyRoundRef.current] || getRandomDirection();
+      dailyRoundRef.current++;
+    } else {
+      dir = getRandomDirection();
+    }
+
     setBallDirection(dir);
     setDiveDirection(null);
     setSaved(null);
     setBallProgress(0);
     setDiveProgress(0);
     hasInputRef.current = false;
+    ballProgressAtDiveRef.current = 0;
     setShowCombo(false);
+    setShowPowerUp(false);
+
+    // Check wide dive
+    setWideDiveActive(activePowerUp?.type === 'widedive');
+
     setGameState('shooting');
     playKickSound();
-  }, []);
+  }, [gameMode, activePowerUp]);
 
   const handleDive = useCallback((dir: Direction) => {
     if (hasInputRef.current || gameState !== 'shooting') return;
     hasInputRef.current = true;
+    ballProgressAtDiveRef.current = ballProgress;
     setDiveDirection(dir);
-  }, [gameState]);
+  }, [gameState, ballProgress]);
 
   // Animation loop
   useEffect(() => {
     if (gameState !== 'shooting') return;
 
     const { base, increment } = DIFFICULTY_SPEEDS[selectedDifficulty];
-    const speed = base + difficulty * increment;
+    let speed = base + difficulty * increment;
+
+    // Slow-mo power-up
+    if (activePowerUp?.type === 'slowmo') {
+      speed *= 0.6;
+    }
 
     const animate = () => {
       setBallProgress(prev => {
         const next = Math.min(prev + speed, 1);
         if (next >= 1) {
           setTimeout(() => {
-            const isSaved = diveDirection === ballDirection;
+            // Wide dive: adjacent directions also count
+            let isSaved = diveDirection === ballDirection;
+            if (!isSaved && wideDiveActive && diveDirection) {
+              const adjacency: Record<Direction, Direction[]> = {
+                left: ['center'],
+                center: ['left', 'right'],
+                right: ['center'],
+              };
+              isSaved = adjacency[ballDirection]?.includes(diveDirection) ?? false;
+            }
             setSaved(isSaved);
 
             if (isSaved) {
               playSaveSound();
               crowdCheer();
+              hapticSave();
 
               // Combo system
               let newCombo = 1;
@@ -105,13 +157,34 @@ export function useGameEngine() {
 
               const pointsEarned = newCombo;
               setTotalPoints(p => p + pointsEarned);
+
+              // Power-up check
+              if (shouldAwardPowerUp(ballProgressAtDiveRef.current, true, activePowerUp)) {
+                const puType = getRandomPowerUp();
+                const pu: ActivePowerUp = { type: puType, roundsLeft: POWER_UP_CONFIG[puType].duration };
+                setActivePowerUp(pu);
+                setShowPowerUp(true);
+                hapticPowerUp();
+                setTimeout(() => setShowPowerUp(false), 1500);
+              } else if (activePowerUp) {
+                // Decrement power-up rounds
+                const remaining = activePowerUp.roundsLeft - 1;
+                if (remaining <= 0) {
+                  setActivePowerUp(null);
+                } else {
+                  setActivePowerUp({ ...activePowerUp, roundsLeft: remaining });
+                }
+              }
             } else {
               playGoalSound();
               crowdGroan();
+              hapticGoal();
               setScreenShake(true);
               setTimeout(() => setScreenShake(false), 400);
               setComboMultiplier(1);
               setComboDirection(null);
+              // Lose power-up on goal
+              setActivePowerUp(null);
             }
 
             setScore(prev => {
@@ -126,13 +199,23 @@ export function useGameEngine() {
 
               if (isSaved && newStreak > 0 && newStreak % 3 === 0) {
                 playStreakSound();
+                hapticStreak();
                 setShowConfetti(true);
                 setTimeout(() => setShowConfetti(false), 1600);
                 setDifficulty(d => Math.min(d + 1, 8));
               }
 
-              if (newScore.goals >= MAX_GOALS) {
-                const isNew = updateHighScore(selectedDifficulty, newScore);
+              const isGameOver = gameMode === 'daily'
+                ? (newScore.goals >= MAX_GOALS || newScore.round > getDailyRoundCount())
+                : newScore.goals >= MAX_GOALS;
+
+              if (isGameOver) {
+                if (gameMode === 'daily') {
+                  saveDailyRecord(newScore.saves, totalPoints + (isSaved ? comboMultiplier : 0));
+                }
+                const isNew = gameMode === 'classic'
+                  ? updateHighScore(selectedDifficulty, newScore)
+                  : false;
                 setIsNewHighScore(isNew);
                 stopCrowdAmbience();
                 setGameState('gameover');
@@ -155,7 +238,7 @@ export function useGameEngine() {
 
     animFrameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier]);
+  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier, activePowerUp, wideDiveActive, gameMode, totalPoints]);
 
   // Auto-start round after result
   useEffect(() => {
@@ -183,6 +266,7 @@ export function useGameEngine() {
     ballProgress, diveProgress, difficulty, selectedDifficulty,
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
+    gameMode, activePowerUp, showPowerUp,
     startGame, handleDive,
   };
 }

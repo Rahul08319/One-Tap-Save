@@ -1,5 +1,6 @@
 import { GameScore, Difficulty } from './types';
 import { getHighScores } from './highScores';
+import { getDailyRecord } from './dailyChallenge';
 
 interface GameOverScreenProps {
   score: GameScore;
@@ -7,22 +8,24 @@ interface GameOverScreenProps {
   isNewHighScore: boolean;
   difficulty: Difficulty;
   totalPoints: number;
+  isDaily?: boolean;
 }
 
-export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, totalPoints }: GameOverScreenProps) {
+export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, totalPoints, isDaily }: GameOverScreenProps) {
   const highScores = getHighScores();
   const best = highScores[difficulty];
+  const dailyRecord = getDailyRecord();
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/95">
       <div className="flex flex-col items-center gap-5">
-        <div className="text-6xl">⚽</div>
+        <div className="text-6xl">{isDaily ? '📅' : '⚽'}</div>
 
         <h2 className="font-display text-4xl text-accent tracking-wide" style={{ textShadow: 'var(--glow-accent)' }}>
-          GAME OVER
+          {isDaily ? 'DAILY COMPLETE' : 'GAME OVER'}
         </h2>
 
-        {isNewHighScore && (
+        {isNewHighScore && !isDaily && (
           <div className="font-display text-xl text-secondary text-glow-secondary animate-pulse tracking-widest">
             🏆 NEW HIGH SCORE! 🏆
           </div>
@@ -49,28 +52,49 @@ export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, t
           </div>
         )}
 
-        {/* All-time best */}
-        <div className="border border-border rounded-lg px-4 py-2 mt-1">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground block text-center mb-1">
-            {difficulty.toUpperCase()} RECORD
-          </span>
-          <div className="flex gap-4 text-center">
-            <div>
-              <span className="font-display text-lg text-primary">{best.saves}</span>
-              <span className="block text-[8px] text-muted-foreground">SAVES</span>
-            </div>
-            <div>
-              <span className="font-display text-lg text-secondary">{best.bestStreak}</span>
-              <span className="block text-[8px] text-muted-foreground">STREAK</span>
+        {/* Daily best */}
+        {isDaily && dailyRecord && (
+          <div className="border border-secondary/30 rounded-lg px-4 py-2 mt-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground block text-center mb-1">
+              TODAY'S BEST
+            </span>
+            <div className="flex gap-4 text-center">
+              <div>
+                <span className="font-display text-lg text-primary">{dailyRecord.saves}</span>
+                <span className="block text-[8px] text-muted-foreground">SAVES</span>
+              </div>
+              <div>
+                <span className="font-display text-lg text-secondary">{dailyRecord.totalPoints}</span>
+                <span className="block text-[8px] text-muted-foreground">POINTS</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* All-time best (classic only) */}
+        {!isDaily && (
+          <div className="border border-border rounded-lg px-4 py-2 mt-1">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground block text-center mb-1">
+              {difficulty.toUpperCase()} RECORD
+            </span>
+            <div className="flex gap-4 text-center">
+              <div>
+                <span className="font-display text-lg text-primary">{best.saves}</span>
+                <span className="block text-[8px] text-muted-foreground">SAVES</span>
+              </div>
+              <div>
+                <span className="font-display text-lg text-secondary">{best.bestStreak}</span>
+                <span className="block text-[8px] text-muted-foreground">STREAK</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={onRestart}
           className="mt-4 px-10 py-4 bg-primary text-primary-foreground font-display text-2xl tracking-wider rounded-lg box-glow-primary active:scale-95 transition-transform"
         >
-          RETRY
+          {isDaily ? 'MENU' : 'RETRY'}
         </button>
       </div>
     </div>
