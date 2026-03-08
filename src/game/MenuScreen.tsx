@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Difficulty } from './types';
 import { getHighScores } from './highScores';
 import { playMenuSelectSound } from './sounds';
+import { hapticTap } from './haptics';
+import { hasDailyBeenPlayed, getDailyRecord } from './dailyChallenge';
+import { GameMode } from './useGameEngine';
 
 interface MenuScreenProps {
-  onStart: (difficulty: Difficulty) => void;
+  onStart: (difficulty: Difficulty, mode?: GameMode) => void;
 }
 
 const DIFF_CONFIG: { key: Difficulty; label: string; desc: string; color: string }[] = [
@@ -16,10 +19,13 @@ const DIFF_CONFIG: { key: Difficulty; label: string; desc: string; color: string
 export function MenuScreen({ onStart }: MenuScreenProps) {
   const [selected, setSelected] = useState<Difficulty>('medium');
   const highScores = getHighScores();
+  const dailyPlayed = hasDailyBeenPlayed();
+  const dailyRecord = getDailyRecord();
 
   const handleSelect = (d: Difficulty) => {
     setSelected(d);
     playMenuSelectSound();
+    hapticTap();
   };
 
   return (
@@ -74,11 +80,28 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
         )}
 
         <button
-          onClick={() => onStart(selected)}
+          onClick={() => onStart(selected, 'classic')}
           className="mt-2 px-10 py-4 bg-primary text-primary-foreground font-display text-2xl tracking-wider rounded-lg box-glow-primary active:scale-95 transition-transform"
         >
           PLAY
         </button>
+
+        {/* Daily Challenge */}
+        <button
+          onClick={() => onStart('medium', 'daily')}
+          className={`px-8 py-3 font-display text-lg tracking-wider rounded-lg active:scale-95 transition-transform border-2 ${
+            dailyPlayed
+              ? 'border-muted-foreground/30 text-muted-foreground'
+              : 'border-secondary text-secondary box-glow-secondary animate-pulse'
+          }`}
+        >
+          📅 DAILY CHALLENGE
+        </button>
+        {dailyPlayed && dailyRecord && (
+          <span className="text-[10px] text-muted-foreground -mt-3">
+            Today: {dailyRecord.saves} saves · {dailyRecord.totalPoints} pts
+          </span>
+        )}
       </div>
     </div>
   );

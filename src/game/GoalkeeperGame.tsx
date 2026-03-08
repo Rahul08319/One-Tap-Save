@@ -8,6 +8,7 @@ import { GameOverScreen } from './GameOverScreen';
 import { Confetti } from './Confetti';
 import { TutorialOverlay, shouldShowTutorial } from './TutorialOverlay';
 import { StadiumLights } from './StadiumLights';
+import { getDailyRoundCount } from './dailyChallenge';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,6 +20,7 @@ export function GoalkeeperGame() {
     ballProgress, diveProgress, difficulty, selectedDifficulty,
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
+    gameMode, activePowerUp, showPowerUp,
     startGame, handleDive,
   } = useGameEngine();
 
@@ -38,11 +40,11 @@ export function GoalkeeperGame() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  const handleStart = (diff: any) => {
+  const handleStart = (diff: any, mode?: any) => {
     if (showTutorial) {
       setShowTutorial(false);
     }
-    startGame(diff);
+    startGame(diff, mode);
   };
 
   return (
@@ -66,7 +68,17 @@ export function GoalkeeperGame() {
 
       {(gameState === 'shooting' || gameState === 'result' || gameState === 'ready') && (
         <>
-          <HUD score={score} difficulty={difficulty} comboMultiplier={comboMultiplier} showCombo={showCombo} totalPoints={totalPoints} />
+          <HUD
+            score={score}
+            difficulty={difficulty}
+            comboMultiplier={comboMultiplier}
+            showCombo={showCombo}
+            totalPoints={totalPoints}
+            activePowerUp={activePowerUp}
+            showPowerUp={showPowerUp}
+            isDaily={gameMode === 'daily'}
+            dailyRounds={getDailyRoundCount()}
+          />
           <DiveControls onDive={handleDive} gameState={gameState} />
         </>
       )}
@@ -82,6 +94,7 @@ export function GoalkeeperGame() {
           isNewHighScore={isNewHighScore}
           difficulty={selectedDifficulty}
           totalPoints={totalPoints}
+          isDaily={gameMode === 'daily'}
         />
       )}
 
