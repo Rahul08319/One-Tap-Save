@@ -6,9 +6,10 @@ interface GameOverScreenProps {
   onRestart: () => void;
   isNewHighScore: boolean;
   difficulty: Difficulty;
+  totalPoints: number;
 }
 
-export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty }: GameOverScreenProps) {
+export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, totalPoints }: GameOverScreenProps) {
   const highScores = getHighScores();
   const best = highScores[difficulty];
 
@@ -41,6 +42,12 @@ export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty }:
             <span className="text-xs uppercase tracking-widest text-muted-foreground">Rounds</span>
           </div>
         </div>
+
+        {totalPoints > score.saves && (
+          <div className="font-display text-lg text-secondary text-glow-secondary">
+            ⭐ {totalPoints} TOTAL POINTS (incl. combo bonus)
+          </div>
+        )}
 
         {/* All-time best */}
         <div className="border border-border rounded-lg px-4 py-2 mt-1">

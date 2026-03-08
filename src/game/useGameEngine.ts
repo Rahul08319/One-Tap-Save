@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Direction, GameState, GameScore, Difficulty } from './types';
-import { playKickSound, playSaveSound, playGoalSound, playStreakSound } from './sounds';
+import { playKickSound, playSaveSound, playGoalSound, playStreakSound, playComboSound, startCrowdAmbience, stopCrowdAmbience, crowdCheer, crowdGroan } from './sounds';
 import { updateHighScore } from './highScores';
 
 const MAX_GOALS = 3;
@@ -26,6 +26,10 @@ export function useGameEngine() {
   const [screenShake, setScreenShake] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const [comboMultiplier, setComboMultiplier] = useState(1);
+  const [comboDirection, setComboDirection] = useState<Direction | null>(null);
+  const [showCombo, setShowCombo] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
   const animFrameRef = useRef<number>(0);
   const hasInputRef = useRef(false);
 
@@ -40,7 +44,11 @@ export function useGameEngine() {
     setScore({ saves: 0, goals: 0, round: 1, streak: 0, bestStreak: 0 });
     setDifficulty(1);
     setIsNewHighScore(false);
+    setComboMultiplier(1);
+    setComboDirection(null);
+    setTotalPoints(0);
     setGameState('ready');
+    startCrowdAmbience();
   }, [selectedDifficulty]);
 
   const startRound = useCallback(() => {
@@ -51,6 +59,7 @@ export function useGameEngine() {
     setBallProgress(0);
     setDiveProgress(0);
     hasInputRef.current = false;
+    setShowCombo(false);
     setGameState('shooting');
     playKickSound();
   }, []);
@@ -78,10 +87,31 @@ export function useGameEngine() {
 
             if (isSaved) {
               playSaveSound();
+              crowdCheer();
+
+              // Combo system
+              let newCombo = 1;
+              if (diveDirection === comboDirection) {
+                newCombo = Math.min(comboMultiplier + 1, 5);
+              }
+              setComboDirection(diveDirection);
+              setComboMultiplier(newCombo);
+
+              if (newCombo >= 2) {
+                playComboSound(newCombo);
+                setShowCombo(true);
+                setTimeout(() => setShowCombo(false), 1000);
+              }
+
+              const pointsEarned = newCombo;
+              setTotalPoints(p => p + pointsEarned);
             } else {
               playGoalSound();
+              crowdGroan();
               setScreenShake(true);
               setTimeout(() => setScreenShake(false), 400);
+              setComboMultiplier(1);
+              setComboDirection(null);
             }
 
             setScore(prev => {
@@ -104,6 +134,7 @@ export function useGameEngine() {
               if (newScore.goals >= MAX_GOALS) {
                 const isNew = updateHighScore(selectedDifficulty, newScore);
                 setIsNewHighScore(isNew);
+                stopCrowdAmbience();
                 setGameState('gameover');
               } else {
                 setGameState('result');
@@ -124,7 +155,7 @@ export function useGameEngine() {
 
     animFrameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty]);
+  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier]);
 
   // Auto-start round after result
   useEffect(() => {
@@ -142,10 +173,16 @@ export function useGameEngine() {
     }
   }, [gameState, startRound]);
 
+  // Cleanup crowd on unmount
+  useEffect(() => {
+    return () => stopCrowdAmbience();
+  }, []);
+
   return {
     gameState, score, ballDirection, diveDirection, saved,
     ballProgress, diveProgress, difficulty, selectedDifficulty,
     screenShake, showConfetti, isNewHighScore,
+    comboMultiplier, showCombo, totalPoints,
     startGame, handleDive,
   };
 }
