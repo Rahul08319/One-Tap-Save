@@ -5,6 +5,7 @@ import { HUD } from './HUD';
 import { DiveControls } from './DiveControls';
 import { MenuScreen } from './MenuScreen';
 import { GameOverScreen } from './GameOverScreen';
+import { Confetti } from './Confetti';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -12,7 +13,8 @@ export function GoalkeeperGame() {
 
   const {
     gameState, score, ballDirection, diveDirection, saved,
-    ballProgress, diveProgress, difficulty,
+    ballProgress, diveProgress, difficulty, selectedDifficulty,
+    screenShake, showConfetti, isNewHighScore,
     startGame, handleDive,
   } = useGameEngine();
 
@@ -20,7 +22,6 @@ export function GoalkeeperGame() {
     const updateSize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        // Use device pixel ratio for sharp canvas
         const dpr = window.devicePixelRatio || 1;
         setDimensions({
           width: Math.floor(rect.width * dpr),
@@ -34,7 +35,10 @@ export function GoalkeeperGame() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-screen overflow-hidden bg-background">
+    <div
+      ref={containerRef}
+      className={`relative w-full h-screen overflow-hidden bg-background ${screenShake ? 'animate-screen-shake' : ''}`}
+    >
       <GameCanvas
         ballDirection={ballDirection}
         diveDirection={diveDirection}
@@ -45,6 +49,8 @@ export function GoalkeeperGame() {
         height={dimensions.height}
       />
 
+      <Confetti active={showConfetti} />
+
       {(gameState === 'shooting' || gameState === 'result' || gameState === 'ready') && (
         <>
           <HUD score={score} difficulty={difficulty} />
@@ -53,9 +59,15 @@ export function GoalkeeperGame() {
       )}
 
       {gameState === 'menu' && <MenuScreen onStart={startGame} />}
-      {gameState === 'gameover' && <GameOverScreen score={score} onRestart={startGame} />}
+      {gameState === 'gameover' && (
+        <GameOverScreen
+          score={score}
+          onRestart={() => startGame()}
+          isNewHighScore={isNewHighScore}
+          difficulty={selectedDifficulty}
+        />
+      )}
 
-      {/* Lives indicators */}
       {(gameState === 'shooting' || gameState === 'result' || gameState === 'ready') && (
         <div className="absolute bottom-[36%] left-0 right-0 flex justify-center gap-2 z-10 pointer-events-none">
           {[0, 1, 2].map(i => (

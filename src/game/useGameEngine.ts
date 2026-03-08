@@ -1,7 +1,15 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Direction, GameState, GameScore } from './types';
+import { Direction, GameState, GameScore, Difficulty } from './types';
+import { playKickSound, playSaveSound, playGoalSound, playStreakSound } from './sounds';
+import { updateHighScore } from './highScores';
 
 const MAX_GOALS = 3;
+
+const DIFFICULTY_SPEEDS: Record<Difficulty, { base: number; increment: number }> = {
+  easy: { base: 0.012, increment: 0.002 },
+  medium: { base: 0.018, increment: 0.003 },
+  hard: { base: 0.025, increment: 0.004 },
+};
 
 export function useGameEngine() {
   const [gameState, setGameState] = useState<GameState>('menu');
@@ -14,8 +22,11 @@ export function useGameEngine() {
   const [ballProgress, setBallProgress] = useState(0);
   const [diveProgress, setDiveProgress] = useState(0);
   const [difficulty, setDifficulty] = useState(1);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium');
+  const [screenShake, setScreenShake] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
   const animFrameRef = useRef<number>(0);
-  const shootTimeRef = useRef<number>(0);
   const hasInputRef = useRef(false);
 
   const getRandomDirection = (): Direction => {
@@ -23,11 +34,14 @@ export function useGameEngine() {
     return dirs[Math.floor(Math.random() * dirs.length)];
   };
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback((diff?: Difficulty) => {
+    const d = diff || selectedDifficulty;
+    setSelectedDifficulty(d);
     setScore({ saves: 0, goals: 0, round: 1, streak: 0, bestStreak: 0 });
     setDifficulty(1);
+    setIsNewHighScore(false);
     setGameState('ready');
-  }, []);
+  }, [selectedDifficulty]);
 
   const startRound = useCallback(() => {
     const dir = getRandomDirection();
@@ -38,7 +52,7 @@ export function useGameEngine() {
     setDiveProgress(0);
     hasInputRef.current = false;
     setGameState('shooting');
-    shootTimeRef.current = performance.now();
+    playKickSound();
   }, []);
 
   const handleDive = useCallback((dir: Direction) => {
@@ -51,16 +65,25 @@ export function useGameEngine() {
   useEffect(() => {
     if (gameState !== 'shooting') return;
 
-    const speed = 0.015 + difficulty * 0.003;
+    const { base, increment } = DIFFICULTY_SPEEDS[selectedDifficulty];
+    const speed = base + difficulty * increment;
 
     const animate = () => {
       setBallProgress(prev => {
         const next = Math.min(prev + speed, 1);
         if (next >= 1) {
-          // Resolve
           setTimeout(() => {
             const isSaved = diveDirection === ballDirection;
             setSaved(isSaved);
+
+            if (isSaved) {
+              playSaveSound();
+            } else {
+              playGoalSound();
+              setScreenShake(true);
+              setTimeout(() => setScreenShake(false), 400);
+            }
+
             setScore(prev => {
               const newStreak = isSaved ? prev.streak + 1 : 0;
               const newScore = {
@@ -70,13 +93,20 @@ export function useGameEngine() {
                 streak: newStreak,
                 bestStreak: Math.max(prev.bestStreak, newStreak),
               };
+
+              if (isSaved && newStreak > 0 && newStreak % 3 === 0) {
+                playStreakSound();
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 1600);
+                setDifficulty(d => Math.min(d + 1, 8));
+              }
+
               if (newScore.goals >= MAX_GOALS) {
+                const isNew = updateHighScore(selectedDifficulty, newScore);
+                setIsNewHighScore(isNew);
                 setGameState('gameover');
               } else {
                 setGameState('result');
-              }
-              if (isSaved && newStreak % 3 === 0) {
-                setDifficulty(d => Math.min(d + 1, 8));
               }
               return newScore;
             });
@@ -94,7 +124,7 @@ export function useGameEngine() {
 
     animFrameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [gameState, diveDirection, ballDirection, difficulty]);
+  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty]);
 
   // Auto-start round after result
   useEffect(() => {
@@ -114,7 +144,8 @@ export function useGameEngine() {
 
   return {
     gameState, score, ballDirection, diveDirection, saved,
-    ballProgress, diveProgress, difficulty,
+    ballProgress, diveProgress, difficulty, selectedDifficulty,
+    screenShake, showConfetti, isNewHighScore,
     startGame, handleDive,
   };
 }
