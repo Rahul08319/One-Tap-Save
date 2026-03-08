@@ -67,3 +67,85 @@ export function playMenuSelectSound() {
   playTone(440, 0.08, 'sine', 0.1);
   setTimeout(() => playTone(660, 0.1, 'sine', 0.1), 60);
 }
+
+export function playComboSound(multiplier: number) {
+  const baseFreq = 600 + multiplier * 100;
+  playTone(baseFreq, 0.12, 'sine', 0.12);
+  setTimeout(() => playTone(baseFreq * 1.25, 0.12, 'sine', 0.12), 70);
+}
+
+// Crowd ambient sound
+let crowdNode: AudioBufferSourceNode | null = null;
+let crowdGain: GainNode | null = null;
+
+export function startCrowdAmbience() {
+  try {
+    const ctx = audioCtx();
+    
+    // Create a looping noise buffer for crowd ambience
+    const duration = 3;
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+    
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buffer.getChannelData(ch);
+      for (let i = 0; i < bufferSize; i++) {
+        // Mix of filtered noise to simulate crowd murmur
+        const t = i / ctx.sampleRate;
+        const wave = Math.sin(t * 80) * 0.3 + Math.sin(t * 120 + ch) * 0.2;
+        const noise = (Math.random() * 2 - 1) * 0.5;
+        // Slow modulation for natural feel
+        const mod = 0.7 + 0.3 * Math.sin(t * 0.5 + ch * 0.3);
+        data[i] = (noise * 0.4 + wave * 0.1) * mod;
+      }
+    }
+    
+    crowdNode = ctx.createBufferSource();
+    crowdNode.buffer = buffer;
+    crowdNode.loop = true;
+    
+    crowdGain = ctx.createGain();
+    crowdGain.gain.setValueAtTime(0, ctx.currentTime);
+    crowdGain.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 1);
+    
+    // Low-pass filter for muffled crowd effect
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+    
+    crowdNode.connect(filter);
+    filter.connect(crowdGain);
+    crowdGain.connect(ctx.destination);
+    crowdNode.start();
+  } catch {}
+}
+
+export function crowdCheer() {
+  if (crowdGain) {
+    try {
+      const ctx = audioCtx();
+      crowdGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.2);
+      crowdGain.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 1.5);
+    } catch {}
+  }
+}
+
+export function crowdGroan() {
+  if (crowdGain) {
+    try {
+      const ctx = audioCtx();
+      crowdGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.1);
+      crowdGain.gain.linearRampToValueAtTime(0.015, ctx.currentTime + 2);
+    } catch {}
+  }
+}
+
+export function stopCrowdAmbience() {
+  try {
+    if (crowdNode) {
+      crowdNode.stop();
+      crowdNode = null;
+    }
+    crowdGain = null;
+  } catch {}
+}

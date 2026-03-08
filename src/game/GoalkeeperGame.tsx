@@ -6,15 +6,19 @@ import { DiveControls } from './DiveControls';
 import { MenuScreen } from './MenuScreen';
 import { GameOverScreen } from './GameOverScreen';
 import { Confetti } from './Confetti';
+import { TutorialOverlay, shouldShowTutorial } from './TutorialOverlay';
+import { StadiumLights } from './StadiumLights';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 700 });
+  const [showTutorial, setShowTutorial] = useState(shouldShowTutorial());
 
   const {
     gameState, score, ballDirection, diveDirection, saved,
     ballProgress, diveProgress, difficulty, selectedDifficulty,
     screenShake, showConfetti, isNewHighScore,
+    comboMultiplier, showCombo, totalPoints,
     startGame, handleDive,
   } = useGameEngine();
 
@@ -34,11 +38,20 @@ export function GoalkeeperGame() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
+  const handleStart = (diff: any) => {
+    if (showTutorial) {
+      setShowTutorial(false);
+    }
+    startGame(diff);
+  };
+
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-screen overflow-hidden bg-background ${screenShake ? 'animate-screen-shake' : ''}`}
     >
+      <StadiumLights />
+
       <GameCanvas
         ballDirection={ballDirection}
         diveDirection={diveDirection}
@@ -53,18 +66,22 @@ export function GoalkeeperGame() {
 
       {(gameState === 'shooting' || gameState === 'result' || gameState === 'ready') && (
         <>
-          <HUD score={score} difficulty={difficulty} />
+          <HUD score={score} difficulty={difficulty} comboMultiplier={comboMultiplier} showCombo={showCombo} totalPoints={totalPoints} />
           <DiveControls onDive={handleDive} gameState={gameState} />
         </>
       )}
 
-      {gameState === 'menu' && <MenuScreen onStart={startGame} />}
+      {gameState === 'menu' && !showTutorial && <MenuScreen onStart={handleStart} />}
+      {gameState === 'menu' && showTutorial && (
+        <TutorialOverlay onDismiss={() => setShowTutorial(false)} />
+      )}
       {gameState === 'gameover' && (
         <GameOverScreen
           score={score}
           onRestart={() => startGame()}
           isNewHighScore={isNewHighScore}
           difficulty={selectedDifficulty}
+          totalPoints={totalPoints}
         />
       )}
 
