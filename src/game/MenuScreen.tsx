@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Difficulty } from './types';
 import { getHighScores } from './highScores';
 import { playMenuSelectSound } from './sounds';
-import { hapticTap } from './haptics';
+import { areHapticsEnabled, hapticTap, setHapticsEnabled } from './haptics';
 import { hasDailyBeenPlayed, getDailyRecord } from './dailyChallenge';
 import { GameMode } from './useGameEngine';
 
@@ -18,6 +18,7 @@ const DIFF_CONFIG: { key: Difficulty; label: string; desc: string; color: string
 
 export function MenuScreen({ onStart }: MenuScreenProps) {
   const [selected, setSelected] = useState<Difficulty>('medium');
+  const [hapticsEnabled, setHapticsEnabledState] = useState(areHapticsEnabled());
   const highScores = getHighScores();
   const dailyPlayed = hasDailyBeenPlayed();
   const dailyRecord = getDailyRecord();
@@ -44,6 +45,19 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
         <p className="text-muted-foreground text-sm text-center max-w-[250px]">
           Tap left, center or right to dive and save the shot. 3 goals and you're out!
         </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            const next = !hapticsEnabled;
+            setHapticsEnabled(next);
+            setHapticsEnabledState(next);
+          }}
+          className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          aria-pressed={hapticsEnabled}
+        >
+          Haptics: {hapticsEnabled ? 'On' : 'Off'}
+        </button>
 
         {/* Difficulty selector */}
         <div className="flex gap-2 mt-2">

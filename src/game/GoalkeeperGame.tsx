@@ -9,6 +9,8 @@ import { Confetti } from './Confetti';
 import { TutorialOverlay, shouldShowTutorial } from './TutorialOverlay';
 import { StadiumLights } from './StadiumLights';
 import { getDailyRoundCount } from './dailyChallenge';
+import { applyYouTubeLanguage, getInitialAudioEnabled, logPlayablesError, notifyFirstFrameReady, notifyGameReady, onYouTubeAudioEnabledChange, onYouTubePause, onYouTubeResume, restoreGameData } from './youtubePlayables';
+import { setGameAudioEnabled } from './sounds';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,24 +23,67 @@ export function GoalkeeperGame() {
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
     gameMode, activePowerUp, showPowerUp,
-    startGame, handleDive,
+    isPaused, startGame, handleDive, pauseGame, resumeGame,
   } = useGameEngine();
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      notifyFirstFrameReady();
+      notifyGameReady();
+    });
+    void restoreGameData();
+    void applyYouTubeLanguage();
+    setGameAudioEnabled(getInitialAudioEnabled());
+    const stopAudioListener = onYouTubeAudioEnabledChange(setGameAudioEnabled);
+    const stopPauseListener = onYouTubePause(pauseGame);
+    const stopResumeListener = onYouTubeResume(resumeGame);
+    const onError = () => logPlayablesError();
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onError);
+    return () => {
+      cancelAnimationFrame(frame);
+      stopAudioListener();
+      stopPauseListener();
+      stopResumeListener();
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onError);
+    };
+  }, [pauseGame, resumeGame]);
 
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        // Keep canvas crisp while capping pixel density to avoid excess memory
+        // on high-density tablets and ultrawide screens.
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         setDimensions({
-          width: Math.floor(rect.width * dpr),
-          height: Math.floor(rect.height * dpr),
+          width: Math.max(1, Math.floor(rect.width * dpr)),
+          height: Math.max(1, Math.floor(rect.height * dpr)),
         });
       }
     };
     updateSize();
+    const observer = new ResizeObserver(updateSize);
+    if (containerRef.current) observer.observe(containerRef.current);
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
+
+  useEffect(() => {
+    window.render_game_to_text = () => JSON.stringify({
+      mode: gameState,
+      paused: isPaused,
+      score,
+      ball: { direction: ballDirection, progress: ballProgress },
+      dive: { direction: diveDirection, progress: diveProgress },
+      coordinateSystem: 'screen origin top-left; x increases right, y increases down',
+    });
+    return () => { delete window.render_game_to_text; };
+  }, [gameState, isPaused, score, ballDirection, ballProgress, diveDirection, diveProgress]);
 
   const handleStart = (diff: any, mode?: any) => {
     if (showTutorial) {
@@ -50,9 +95,15 @@ export function GoalkeeperGame() {
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-screen overflow-hidden bg-background ${screenShake ? 'animate-screen-shake' : ''}`}
+      className={`relative w-full h-[100dvh] min-h-[320px] overflow-hidden bg-background ${screenShake ? 'animate-screen-shake' : ''}`}
     >
       <StadiumLights />
+
+      {isPaused && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 text-primary font-display text-2xl tracking-widest">
+          PAUSED
+        </div>
+      )}
 
       <GameCanvas
         ballDirection={ballDirection}

@@ -1,40 +1,36 @@
-// Haptic feedback for mobile devices using Vibration API
-export function hapticSave() {
+// Haptic feedback for mobile devices using Vibration API.
+const HAPTICS_KEY = 'otg_haptics_enabled';
+
+export function areHapticsEnabled() {
+  return localStorage.getItem(HAPTICS_KEY) !== 'false';
+}
+
+export function setHapticsEnabled(enabled: boolean) {
+  localStorage.setItem(HAPTICS_KEY, String(enabled));
+}
+
+function vibrate(pattern: VibratePattern) {
   try {
-    if (navigator.vibrate) {
-      navigator.vibrate([30, 20, 30]); // Short double pulse for save
-    }
+    if (areHapticsEnabled() && navigator.vibrate) navigator.vibrate(pattern);
   } catch {}
+}
+
+export function hapticSave() {
+  vibrate([30, 20, 30]);
 }
 
 export function hapticGoal() {
-  try {
-    if (navigator.vibrate) {
-      navigator.vibrate([80, 30, 80, 30, 120]); // Strong triple pulse for goal
-    }
-  } catch {}
+  vibrate([80, 30, 80, 30, 120]);
 }
 
 export function hapticStreak() {
-  try {
-    if (navigator.vibrate) {
-      navigator.vibrate([20, 10, 20, 10, 20, 10, 40]); // Rapid celebration
-    }
-  } catch {}
+  vibrate([20, 10, 20, 10, 20, 10, 40]);
 }
 
 export function hapticPowerUp() {
-  try {
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 30, 100]); // Power-up activation
-    }
-  } catch {}
+  vibrate([50, 30, 100]);
 }
 
 export function hapticTap() {
-  try {
-    if (navigator.vibrate) {
-      navigator.vibrate(10); // Light tap
-    }
-  } catch {}
+  vibrate(10);
 }

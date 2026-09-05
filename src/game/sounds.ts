@@ -1,4 +1,14 @@
 // Web Audio API sound effects - no external files needed
+let gameAudioEnabled = true;
+
+export function setGameAudioEnabled(enabled: boolean) {
+  gameAudioEnabled = enabled;
+  const ctx = (window as any).__gameAudioCtx as AudioContext | undefined;
+  if (!ctx) return;
+  if (enabled && ctx.state === 'suspended') void ctx.resume();
+  if (!enabled && ctx.state === 'running') void ctx.suspend();
+}
+
 const audioCtx = () => {
   if (!(window as any).__gameAudioCtx) {
     (window as any).__gameAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -7,6 +17,7 @@ const audioCtx = () => {
 };
 
 function playTone(freq: number, duration: number, type: OscillatorType = 'square', volume = 0.15) {
+  if (!gameAudioEnabled) return;
   try {
     const ctx = audioCtx();
     const osc = ctx.createOscillator();
@@ -23,6 +34,7 @@ function playTone(freq: number, duration: number, type: OscillatorType = 'square
 }
 
 function playNoise(duration: number, volume = 0.1) {
+  if (!gameAudioEnabled) return;
   try {
     const ctx = audioCtx();
     const bufferSize = ctx.sampleRate * duration;
@@ -79,6 +91,7 @@ let crowdNode: AudioBufferSourceNode | null = null;
 let crowdGain: GainNode | null = null;
 
 export function startCrowdAmbience() {
+  if (!gameAudioEnabled) return;
   try {
     const ctx = audioCtx();
     

@@ -5,6 +5,7 @@ import { updateHighScore } from './highScores';
 import { hapticSave, hapticGoal, hapticStreak, hapticPowerUp } from './haptics';
 import { getDailyShotSequence, getDailyRoundCount, saveDailyRecord } from './dailyChallenge';
 import { ActivePowerUp, shouldAwardPowerUp, getRandomPowerUp, POWER_UP_CONFIG } from './powerUps';
+import { persistGameData, sendScoreToYouTube } from './youtubePlayables';
 
 const MAX_GOALS = 3;
 
@@ -39,6 +40,7 @@ export function useGameEngine() {
   const [activePowerUp, setActivePowerUp] = useState<ActivePowerUp | null>(null);
   const [showPowerUp, setShowPowerUp] = useState(false);
   const [wideDiveActive, setWideDiveActive] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const animFrameRef = useRef<number>(0);
   const hasInputRef = useRef(false);
   const ballProgressAtDiveRef = useRef(0);
@@ -101,15 +103,22 @@ export function useGameEngine() {
   }, [gameMode, activePowerUp]);
 
   const handleDive = useCallback((dir: Direction) => {
-    if (hasInputRef.current || gameState !== 'shooting') return;
+    if (isPaused || hasInputRef.current || gameState !== 'shooting') return;
     hasInputRef.current = true;
     ballProgressAtDiveRef.current = ballProgress;
     setDiveDirection(dir);
-  }, [gameState, ballProgress]);
+  }, [gameState, ballProgress, isPaused]);
+
+  const pauseGame = useCallback(() => {
+    setIsPaused(true);
+    void persistGameData();
+  }, []);
+
+  const resumeGame = useCallback(() => setIsPaused(false), []);
 
   // Animation loop
   useEffect(() => {
-    if (gameState !== 'shooting') return;
+    if (gameState !== 'shooting' || isPaused) return;
 
     const { base, increment } = DIFFICULTY_SPEEDS[selectedDifficulty];
     let speed = base + difficulty * increment;
@@ -218,6 +227,8 @@ export function useGameEngine() {
                   : false;
                 setIsNewHighScore(isNew);
                 stopCrowdAmbience();
+                void persistGameData();
+                void sendScoreToYouTube(newScore.saves);
                 setGameState('gameover');
               } else {
                 setGameState('result');
@@ -238,23 +249,23 @@ export function useGameEngine() {
 
     animFrameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier, activePowerUp, wideDiveActive, gameMode, totalPoints]);
+  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier, activePowerUp, wideDiveActive, gameMode, totalPoints, isPaused]);
 
   // Auto-start round after result
   useEffect(() => {
-    if (gameState === 'result') {
+    if (gameState === 'result' && !isPaused) {
       const t = setTimeout(startRound, 1200);
       return () => clearTimeout(t);
     }
-  }, [gameState, startRound]);
+  }, [gameState, startRound, isPaused]);
 
   // Auto-start first round
   useEffect(() => {
-    if (gameState === 'ready') {
+    if (gameState === 'ready' && !isPaused) {
       const t = setTimeout(startRound, 600);
       return () => clearTimeout(t);
     }
-  }, [gameState, startRound]);
+  }, [gameState, startRound, isPaused]);
 
   // Cleanup crowd on unmount
   useEffect(() => {
@@ -267,6 +278,6 @@ export function useGameEngine() {
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
     gameMode, activePowerUp, showPowerUp,
-    startGame, handleDive,
+    isPaused, startGame, handleDive, pauseGame, resumeGame,
   };
 }
