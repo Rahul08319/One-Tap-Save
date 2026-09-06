@@ -3,13 +3,14 @@ import { Direction, GameState } from './types';
 interface DiveControlsProps {
   onDive: (dir: Direction) => void;
   gameState: GameState;
+  leftHanded?: boolean;
 }
 
-export function DiveControls({ onDive, gameState }: DiveControlsProps) {
+export function DiveControls({ onDive, gameState, leftHanded = false }: DiveControlsProps) {
   const isActive = gameState === 'shooting';
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 flex h-[35%] z-20">
+    <div className={`absolute bottom-0 ${leftHanded ? 'left-0 right-[20%]' : 'left-0 right-0'} flex h-[35%] z-20`}>
       <button
         className="flex-1 flex items-center justify-center active:bg-primary/10 transition-colors"
         onPointerDown={() => isActive && onDive('left')}

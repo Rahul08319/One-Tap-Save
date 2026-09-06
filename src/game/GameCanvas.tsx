@@ -9,10 +9,11 @@ interface GameCanvasProps {
   saved: boolean | null;
   width: number;
   height: number;
+  gloveColor?: string;
 }
 
 export function GameCanvas({
-  ballDirection, diveDirection, ballProgress, diveProgress, saved, width, height,
+  ballDirection, diveDirection, ballProgress, diveProgress, saved, width, height, gloveColor = '#ffcc00',
 }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -113,8 +114,8 @@ export function GameCanvas({
     const gkSize = w * 0.045;
 
     // GK body
-    ctx.fillStyle = '#ffcc00';
-    ctx.shadowColor = 'rgba(255, 204, 0, 0.5)';
+    ctx.fillStyle = gloveColor;
+    ctx.shadowColor = gloveColor;
     ctx.shadowBlur = 15;
 
     // Head
@@ -127,7 +128,7 @@ export function GameCanvas({
 
     // Arms
     ctx.lineWidth = gkSize * 0.3;
-    ctx.strokeStyle = '#ffcc00';
+    ctx.strokeStyle = gloveColor;
     ctx.lineCap = 'round';
     ctx.beginPath();
     if (diveDirection === 'left' && diveProgress > 0.2) {
@@ -199,7 +200,7 @@ export function GameCanvas({
       ctx.fillText(saved ? 'SAVED!' : 'GOAL!', w / 2, h * 0.55);
       ctx.shadowBlur = 0;
     }
-  }, [ballDirection, diveDirection, ballProgress, diveProgress, saved, width, height]);
+  }, [ballDirection, diveDirection, ballProgress, diveProgress, saved, width, height, gloveColor]);
 
   return (
     <canvas

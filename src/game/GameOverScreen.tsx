@@ -1,6 +1,8 @@
 import { GameScore, Difficulty } from './types';
 import { getHighScores } from './highScores';
 import { getDailyRecord } from './dailyChallenge';
+import { useEffect, useState } from 'react';
+import { getLeague, getPlayerProfile, recordMatch } from './playerProgress';
 
 interface GameOverScreenProps {
   score: GameScore;
@@ -15,6 +17,14 @@ export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, t
   const highScores = getHighScores();
   const best = highScores[difficulty];
   const dailyRecord = getDailyRecord();
+  const [profile, setProfile] = useState(getPlayerProfile());
+  const [showHighlights, setShowHighlights] = useState(false);
+
+  useEffect(() => {
+    setProfile(recordMatch(score.saves, totalPoints));
+  }, []);
+
+  const challengeCode = `GK-${profile.season.replace('-', '')}-${score.saves}-${score.bestStreak}`;
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/95">
@@ -49,6 +59,21 @@ export function GameOverScreen({ score, onRestart, isNewHighScore, difficulty, t
         {totalPoints > score.saves && (
           <div className="font-display text-lg text-secondary text-glow-secondary">
             ⭐ {totalPoints} TOTAL POINTS (incl. combo bonus)
+          </div>
+        )}
+
+        <div className="rounded-lg border border-border px-4 py-2 text-center">
+          <div className="text-[9px] uppercase tracking-widest text-muted-foreground">{getLeague(profile)} league · {profile.xp} XP</div>
+          <div className="mt-1 text-[10px] text-secondary">Challenge code: {challengeCode}</div>
+        </div>
+
+        <button type="button" onClick={() => setShowHighlights(!showHighlights)} className="text-[10px] uppercase tracking-widest text-primary underline">
+          {showHighlights ? 'Hide replay highlights' : 'View replay highlights'}
+        </button>
+        {showHighlights && (
+          <div className="rounded-lg border border-primary/30 bg-muted/30 px-4 py-2 text-center text-xs text-muted-foreground">
+            <div>Best run: {score.saves} saves · {score.bestStreak} save streak</div>
+            <div>Combo points earned: {Math.max(0, totalPoints - score.saves)}</div>
           </div>
         )}
 

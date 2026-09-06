@@ -117,3 +117,16 @@
 .animate-screen-shake {
   animation: screen-shake 0.4s ease-out;
 }
+
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+.high-contrast {
+  --background: 150 45% 4%;
+  --foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 85%;
+  --primary: 120 100% 55%;
+  --secondary: 50 100% 60%;
+}

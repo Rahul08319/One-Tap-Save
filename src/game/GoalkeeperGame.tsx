@@ -11,11 +11,14 @@ import { StadiumLights } from './StadiumLights';
 import { getDailyRoundCount } from './dailyChallenge';
 import { applyYouTubeLanguage, getInitialAudioEnabled, logPlayablesError, notifyFirstFrameReady, notifyGameReady, onYouTubeAudioEnabledChange, onYouTubePause, onYouTubeResume, restoreGameData } from './youtubePlayables';
 import { setGameAudioEnabled } from './sounds';
+import { getAccessibilitySettings, saveAccessibilitySettings } from './accessibility';
+import { GLOVES, getPlayerProfile } from './playerProgress';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 700 });
   const [showTutorial, setShowTutorial] = useState(shouldShowTutorial());
+  const [profile, setProfile] = useState(getPlayerProfile());
 
   const {
     gameState, score, ballDirection, diveDirection, saved,
@@ -34,12 +37,15 @@ export function GoalkeeperGame() {
     void restoreGameData();
     void applyYouTubeLanguage();
     setGameAudioEnabled(getInitialAudioEnabled());
+    saveAccessibilitySettings(getAccessibilitySettings());
     const stopAudioListener = onYouTubeAudioEnabledChange(setGameAudioEnabled);
     const stopPauseListener = onYouTubePause(pauseGame);
     const stopResumeListener = onYouTubeResume(resumeGame);
     const onError = () => logPlayablesError();
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onError);
+    const refreshProfile = () => setProfile(getPlayerProfile());
+    window.addEventListener('otg-profile-change', refreshProfile);
     return () => {
       cancelAnimationFrame(frame);
       stopAudioListener();
@@ -47,6 +53,7 @@ export function GoalkeeperGame() {
       stopResumeListener();
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onError);
+      window.removeEventListener('otg-profile-change', refreshProfile);
     };
   }, [pauseGame, resumeGame]);
 
@@ -113,6 +120,7 @@ export function GoalkeeperGame() {
         saved={saved}
         width={dimensions.width}
         height={dimensions.height}
+        gloveColor={GLOVES[profile.selectedGlove].color}
       />
 
       <Confetti active={showConfetti} />
