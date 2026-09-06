@@ -8,6 +8,8 @@ declare global {
 
 const SAVE_KEY = 'otg_playables_save';
 const PERSISTENT_KEYS = ['otg_high_scores', 'otg_daily_challenge', 'otg_tutorial_seen'];
+let hasRestoredCloudSave = false;
+let restoringCloudSave: Promise<void> | null = null;
 
 function sdk() { return window.ytgame; }
 
@@ -39,26 +41,35 @@ function getPersistedData() {
 
 /** Saves existing local progress locally and, on YouTube, to cloud save. */
 export async function persistGameData() {
+  if (!isPlayablesEnvironment()) {
+    const data = JSON.stringify({ version: 1, data: getPersistedData() });
+    localStorage.setItem(SAVE_KEY, data);
+    return;
+  }
+  await restoreGameData();
   const data = JSON.stringify({ version: 1, data: getPersistedData() });
-  localStorage.setItem(SAVE_KEY, data);
-  if (!isPlayablesEnvironment()) return;
   try { await sdk()?.game?.saveData?.(data); } catch { logPlayablesWarning(); }
 }
 
 /** Restores YouTube cloud save into the game's existing local-storage format. */
 export async function restoreGameData() {
-  if (!isPlayablesEnvironment()) return;
-  try {
-    const raw = await sdk()?.game?.loadData?.();
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as { version?: number; data?: Record<string, unknown> };
-    if (parsed.version !== 1 || !parsed.data) return;
-    for (const key of PERSISTENT_KEYS) {
-      const value = parsed.data[key];
-      if (typeof value === 'string') localStorage.setItem(key, value);
-    }
-    localStorage.setItem(SAVE_KEY, raw);
-  } catch { logPlayablesWarning(); }
+  if (hasRestoredCloudSave || !isPlayablesEnvironment()) return;
+  if (restoringCloudSave) return restoringCloudSave;
+  restoringCloudSave = (async () => {
+    try {
+      const raw = await sdk()?.game?.loadData?.();
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { version?: number; data?: Record<string, unknown> };
+      if (parsed.version !== 1 || !parsed.data) return;
+      for (const key of PERSISTENT_KEYS) {
+        const value = parsed.data[key];
+        if (typeof value === 'string') localStorage.setItem(key, value);
+      }
+      localStorage.setItem(SAVE_KEY, raw);
+    } catch { logPlayablesWarning(); }
+    finally { hasRestoredCloudSave = true; }
+  })();
+  return restoringCloudSave;
 }
 
 export async function applyYouTubeLanguage() {

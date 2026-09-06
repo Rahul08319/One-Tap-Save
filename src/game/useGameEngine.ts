@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Direction, GameState, GameScore, Difficulty } from './types';
-import { playKickSound, playSaveSound, playGoalSound, playStreakSound, playComboSound, startCrowdAmbience, stopCrowdAmbience, crowdCheer, crowdGroan } from './sounds';
+import { playKickSound, playSaveSound, playGoalSound, playStreakSound, playComboSound, setGamePaused, startCrowdAmbience, stopCrowdAmbience, crowdCheer, crowdGroan } from './sounds';
 import { updateHighScore } from './highScores';
 import { hapticSave, hapticGoal, hapticStreak, hapticPowerUp } from './haptics';
 import { getDailyShotSequence, getDailyRoundCount, saveDailyRecord } from './dailyChallenge';
@@ -111,10 +111,14 @@ export function useGameEngine() {
 
   const pauseGame = useCallback(() => {
     setIsPaused(true);
+    setGamePaused(true);
     void persistGameData();
   }, []);
 
-  const resumeGame = useCallback(() => setIsPaused(false), []);
+  const resumeGame = useCallback(() => {
+    setGamePaused(false);
+    setIsPaused(false);
+  }, []);
 
   // Animation loop
   useEffect(() => {

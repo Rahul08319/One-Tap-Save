@@ -92,6 +92,24 @@ export function GoalkeeperGame() {
     return () => { delete window.render_game_to_text; };
   }, [gameState, isPaused, score, ballDirection, ballProgress, diveDirection, diveProgress]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'f') {
+        if (document.fullscreenElement) void document.exitFullscreen();
+        else void containerRef.current?.requestFullscreen?.();
+        return;
+      }
+      if (gameState !== 'shooting' || isPaused) return;
+      const direction = event.key === 'ArrowLeft' ? 'left' : event.key === 'ArrowRight' ? 'right' : event.key === 'ArrowUp' || event.key === ' ' ? 'center' : null;
+      if (direction) {
+        event.preventDefault();
+        handleDive(direction);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [gameState, isPaused, handleDive]);
+
   const handleStart = (diff: any, mode?: any) => {
     if (showTutorial) {
       setShowTutorial(false);
