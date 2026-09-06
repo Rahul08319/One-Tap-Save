@@ -15,8 +15,8 @@ interface HUDProps {
 
 export function HUD({ score, difficulty, comboMultiplier, showCombo, totalPoints, activePowerUp, showPowerUp, isDaily, dailyRounds }: HUDProps) {
   return (
-    <div className="absolute top-0 left-0 right-0 flex justify-between items-start px-4 pt-3 pointer-events-none z-10">
-      <div className="flex flex-col items-center">
+    <div className="absolute top-0 left-0 right-0 flex justify-between items-start px-4 pt-4 pointer-events-none z-10">
+      <div className="game-panel min-w-16 rounded-xl px-3 py-2 flex flex-col items-center">
         <span className="font-display text-3xl text-primary text-glow-primary leading-none">
           {score.saves}
         </span>
@@ -26,7 +26,7 @@ export function HUD({ score, difficulty, comboMultiplier, showCombo, totalPoints
         )}
       </div>
       
-      <div className="flex flex-col items-center">
+      <div className="game-panel rounded-xl px-3 py-2 flex flex-col items-center">
         <span className="font-display text-lg text-muted-foreground leading-none">
           {isDaily ? `${score.round}/${dailyRounds}` : `RD ${score.round}`}
         </span>
@@ -45,7 +45,7 @@ export function HUD({ score, difficulty, comboMultiplier, showCombo, totalPoints
         )}
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="game-panel min-w-16 rounded-xl px-3 py-2 flex flex-col items-center">
         <span className="font-display text-3xl text-accent leading-none" style={{ textShadow: 'var(--glow-accent)' }}>
           {score.goals}
         </span>

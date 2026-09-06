@@ -40,19 +40,17 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/95">
-      <div className="flex flex-col items-center gap-5">
-        <div className="relative">
-          <div className="text-7xl mb-2">🧤</div>
-        </div>
+    <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/92 px-4">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4">
+        <div className="game-kicker">The night-match reflex game</div>
 
-        <h1 className="font-display text-5xl sm:text-6xl text-foreground text-center leading-none tracking-wide">
+        <h1 className="font-display text-6xl sm:text-7xl text-foreground text-center leading-[0.82] tracking-wide drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
           ONE TAP
           <br />
           <span className="text-primary text-glow-primary">GOALKEEPER</span>
         </h1>
 
-        <p className="text-muted-foreground text-sm text-center max-w-[250px]">
+        <p className="text-muted-foreground text-sm text-center max-w-[270px] leading-relaxed">
           Tap left, center or right to dive and save the shot. 3 goals and you're out!
         </p>
 
@@ -69,7 +67,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
           Haptics: {hapticsEnabled ? 'On' : 'Off'}
         </button>
 
-        <div className="w-[280px] rounded-lg border border-border bg-muted/30 px-3 py-2">
+        <div className="game-panel w-full rounded-2xl px-4 py-3">
           <div className="flex justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
             <span>{getLeague(profile)} League</span><span>{profile.seasonSaves} season saves</span>
           </div>
@@ -102,15 +100,15 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
         </div>
 
         {/* Difficulty selector */}
-        <div className="flex gap-2 mt-2">
+        <div className="game-panel flex w-full gap-2 rounded-2xl p-2">
           {DIFF_CONFIG.map(d => (
             <button
               key={d.key}
               onClick={() => handleSelect(d.key)}
               className={`px-4 py-2 rounded-lg font-display text-lg tracking-wider transition-all ${
                 selected === d.key
-                  ? `${d.color} bg-muted border-2 border-current scale-105`
-                  : 'text-muted-foreground border-2 border-transparent hover:border-muted-foreground/30'
+                  ? `${d.color} bg-secondary/10 border border-secondary scale-[1.03]`
+                  : 'text-muted-foreground border border-transparent hover:border-muted-foreground/30'
               }`}
             >
               {d.label}
@@ -137,7 +135,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
 
         <button
           onClick={() => onStart(selected, 'classic')}
-          className="mt-2 px-10 py-4 bg-primary text-primary-foreground font-display text-2xl tracking-wider rounded-lg box-glow-primary active:scale-95 transition-transform"
+          className="game-primary-button mt-2 w-full px-10 py-4 text-primary-foreground font-display text-2xl tracking-[0.12em] rounded-xl active:scale-95 transition-transform"
         >
           PLAY
         </button>
@@ -145,7 +143,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
         {/* Daily Challenge */}
         <button
           onClick={() => onStart('medium', 'daily')}
-          className={`px-8 py-3 font-display text-lg tracking-wider rounded-lg active:scale-95 transition-transform border-2 ${
+          className={`w-full px-8 py-3 font-display text-lg tracking-[0.12em] rounded-xl active:scale-95 transition-transform border ${
             dailyPlayed
               ? 'border-muted-foreground/30 text-muted-foreground'
               : 'border-secondary text-secondary box-glow-secondary animate-pulse'

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 150 30% 8%;
-    --foreground: 80 60% 95%;
+    --background: 158 42% 6%;
+    --foreground: 48 50% 96%;
 
-    --card: 150 25% 12%;
-    --card-foreground: 80 60% 95%;
+    --card: 157 33% 10%;
+    --card-foreground: 48 50% 96%;
 
     --popover: 150 25% 12%;
     --popover-foreground: 80 60% 95%;
 
-    --primary: 120 80% 45%;
-    --primary-foreground: 150 30% 8%;
+    --primary: 145 86% 52%;
+    --primary-foreground: 158 42% 6%;
 
-    --secondary: 45 100% 55%;
-    --secondary-foreground: 150 30% 8%;
+    --secondary: 43 94% 59%;
+    --secondary-foreground: 158 42% 6%;
 
-    --muted: 150 20% 18%;
-    --muted-foreground: 150 15% 55%;
+    --muted: 156 24% 17%;
+    --muted-foreground: 150 13% 67%;
 
     --accent: 0 85% 55%;
     --accent-foreground: 0 0% 100%;
@@ -30,9 +30,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 150 20% 20%;
-    --input: 150 20% 20%;
-    --ring: 120 80% 45%;
+    --border: 151 25% 28%;
+    --input: 151 25% 28%;
+    --ring: 43 94% 59%;
 
     --radius: 0.75rem;
 
@@ -45,7 +45,7 @@
     --sidebar-border: 150 20% 20%;
     --sidebar-ring: 120 80% 45%;
 
-    --font-display: 'Bebas Neue', sans-serif;
+    --font-display: 'Bebas Neue', 'Barlow Condensed', sans-serif;
     --font-body: 'Inter', sans-serif;
 
     --glow-primary: 0 0 20px hsl(120 80% 45% / 0.4);
@@ -88,6 +88,26 @@
 
   .box-glow-accent {
     box-shadow: var(--glow-accent);
+  }
+
+  .game-panel {
+    background: linear-gradient(145deg, hsl(157 33% 12% / 0.92), hsl(158 42% 6% / 0.92));
+    border: 1px solid hsl(43 94% 59% / 0.34);
+    box-shadow: inset 0 1px 0 hsl(48 50% 96% / 0.08), 0 12px 32px hsl(158 42% 3% / 0.36);
+  }
+
+  .game-kicker {
+    color: hsl(var(--secondary));
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .game-primary-button {
+    background: linear-gradient(135deg, hsl(43 94% 64%), hsl(38 90% 48%));
+    box-shadow: 0 10px 24px hsl(43 94% 40% / 0.28), inset 0 1px 0 hsl(48 80% 90% / 0.55);
   }
 }
 

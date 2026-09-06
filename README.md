@@ -1,73 +1,83 @@
-# Welcome to your Lovable project
+# One Tap Goalkeeper
 
-## Project info
+> A fast, touch-first football reflex game built for the web and prepared for YouTube Playables.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Step into goal, read the shot, and make the save. One Tap Goalkeeper is designed around a single satisfying decision: dive left, center, or right before the ball hits the net.
 
-## How can I edit this code?
+## Highlights
 
-There are several ways of editing your application.
+- **Instant goalkeeper gameplay** — three large touch zones, plus keyboard support for desktop.
+- **Classic and Daily Challenge modes** — build high scores or take on a seeded daily run.
+- **Progression** — earn XP, unlock glove styles, and climb the monthly league ladder.
+- **Momentum systems** — streaks, combos, power-ups, haptics, crowd sound, and replay highlights.
+- **Accessibility choices** — high contrast, reduced motion, haptics, left-handed controls, and fullscreen support.
+- **Responsive by design** — adapts to mobile, tablet, ultrawide, and resized Playables canvases.
 
-**Use Lovable**
+## YouTube Playables readiness
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+The game includes a defensive YouTube Playables SDK integration:
 
-Changes made via Lovable will be committed automatically to this repo.
+- Loads the SDK before game code.
+- Signals `firstFrameReady()` and `gameReady()`.
+- Uses SDK pause/resume and audio state callbacks.
+- Restores cloud data before any cloud save attempt.
+- Sends score updates and reports health warnings/errors safely.
+- Falls back gracefully when running outside Playables.
 
-**Use your preferred IDE**
+Ads and other monetization APIs are intentionally not included.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+> Before release, validate the production build in the [YouTube Playables Test Suite](https://developers.google.com/youtube/gaming/playables/test_suite) using your authenticated Developer Portal account.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Controls
 
-Follow these steps:
+| Action | Touch | Keyboard |
+| --- | --- | --- |
+| Dive left | Left zone | `←` |
+| Dive center | Center zone | `↑` or `Space` |
+| Dive right | Right zone | `→` |
+| Fullscreen | — | `F` |
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Local development
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/Rahul08319/one-tap-save.git
+cd one-tap-save
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+For a production check:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+npm run test
+```
 
-**Use GitHub Codespaces**
+## Tech
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
+- React + TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- Canvas 2D + Web Audio API
+- YouTube Playables SDK
 
-## How can I deploy this project?
+## Project structure
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```text
+src/
+├── game/       # gameplay, progression, accessibility, Playables adapter
+├── components/ # reusable UI primitives
+└── pages/      # app routes
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Release checklist
 
-Yes, you can!
+- Build with `npm run build`.
+- Confirm the production bundle meets Playables size limits.
+- Test touch, mouse, keyboard, resize, pause/resume, and muted audio states.
+- Run the YouTube Playables Test Suite.
+- Complete required metadata in the YouTube Playables Developer Portal.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Built by Rahul Kumar.
