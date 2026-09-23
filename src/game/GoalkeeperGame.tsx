@@ -33,7 +33,16 @@ export function GoalkeeperGame() {
   const [showTutorial, setShowTutorial] = useState(shouldShowTutorial());
   const [profile, setProfile] = useState(getPlayerProfile());
 
-  const {\n    gameState, score, ballDirection, diveDirection, saved,\n    ballProgress, diveProgress, difficulty, selectedDifficulty,\n    screenShake, showConfetti, isNewHighScore,\n    comboMultiplier, showCombo, totalPoints,\n    gameMode, activePowerUp, showPowerUp,\n    isPaused, showReviveModal,\n    startGame, handleDive, pauseGame, resumeGame,\n    reviveWithAd, dismissRevive,\n  } = useGameEngine();
+  const {
+    gameState, score, ballDirection, diveDirection, saved,
+    ballProgress, diveProgress, difficulty, selectedDifficulty,
+    screenShake, showConfetti, isNewHighScore,
+    comboMultiplier, showCombo, totalPoints,
+    gameMode, activePowerUp, showPowerUp,
+    isPaused, showReviveModal,
+    startGame, handleDive, pauseGame, resumeGame,
+    reviveWithAd, dismissRevive,
+  } = useGameEngine();
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
