@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { hapticTap } from './haptics';
 
 const TUTORIAL_KEY = 'otg_tutorial_seen';
 
@@ -12,24 +13,24 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
   const steps = [
     {
       emoji: '⚽',
-      title: 'THE BALL IS COMING!',
-      desc: 'A shot will fly toward your goal. Watch which direction it goes!',
+      title: 'Incoming Penalty!',
+      desc: 'A shot will fly toward your goal frame. Track the ball direction and react before it crosses the goal line.',
     },
     {
       emoji: '🧤',
-      title: 'TAP TO DIVE',
-      desc: 'Tap LEFT, CENTER, or RIGHT to dive and block the shot.',
+      title: 'Direct Your Dive',
+      desc: 'Tap Left, Center, or Right on the bottom screen to make the reflex save.',
       showZones: true,
     },
     {
       emoji: '🔥',
-      title: 'BUILD COMBOS',
-      desc: 'Save in the same direction consecutively for bonus multiplier points!',
+      title: 'Build Save Combos',
+      desc: 'Consecutive saves in identical zones build up multiplier bonuses and grant power-ups like Slow-Mo & Wide-Dives.',
     },
     {
-      emoji: '💀',
-      title: '3 GOALS = GAME OVER',
-      desc: 'Concede 3 goals and it\'s over. How many can you save?',
+      emoji: '🏆',
+      title: 'Climb the Global Ranks',
+      desc: 'Concede 3 goals and the whistle blows. Submit high scores to YouTube and platform leaderboards!',
     },
   ];
 
@@ -37,40 +38,67 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
   const isLast = step === steps.length - 1;
 
   const handleNext = () => {
+    hapticTap();
     if (isLast) {
       localStorage.setItem(TUTORIAL_KEY, 'true');
       onDismiss();
     } else {
-      setStep(s => s + 1);
+      setStep((s) => s + 1);
     }
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/97" onClick={handleNext}>
-      <div className="flex flex-col items-center gap-4 max-w-[280px] text-center animate-fade-in" key={step}>
-        <div className="text-6xl">{current.emoji}</div>
-        <h2 className="font-display text-3xl text-primary text-glow-primary tracking-wider">{current.title}</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">{current.desc}</p>
+    <div className=\"absolute inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-2xl p-6\">
+      <div
+        className=\"w-full max-w-sm apple-glass rounded-3xl p-7 flex flex-col items-center gap-5 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200\"
+        key={step}
+      >
+        <div className=\"w-16 h-16 rounded-2xl apple-glass-card flex items-center justify-center text-4xl shadow-inner\">
+          {current.emoji}
+        </div>
+
+        <div className=\"flex flex-col gap-1.5\">
+          <h2 className=\"font-display text-2xl font-bold text-foreground tracking-tight\">
+            {current.title}
+          </h2>
+          <p className=\"text-xs text-muted-foreground leading-relaxed\">
+            {current.desc}
+          </p>
+        </div>
 
         {current.showZones && (
-          <div className="flex gap-3 mt-2">
-            {['← LEFT', '↑ CENTER', '→ RIGHT'].map(label => (
-              <div key={label} className="px-3 py-2 rounded-lg border border-primary/30 text-primary font-display text-sm tracking-wider">
+          <div className=\"flex gap-2 w-full mt-1\">
+            {['← Left', '↑ Center', '→ Right'].map((label) => (
+              <div
+                key={label}
+                className=\"flex-1 py-2 rounded-xl apple-glass-card border-primary/30 text-primary font-semibold text-xs text-center\"
+              >
                 {label}
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex gap-2 mt-4">
+        {/* Apple Step Indicator Dots */}
+        <div className=\"flex items-center gap-1.5 mt-2\">
           {steps.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full ${i === step ? 'bg-primary' : 'bg-muted'}`} />
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === step ? 'w-6 bg-primary' : 'w-1.5 bg-white/20'\n              }`}
+            />
           ))}
         </div>
 
-        <span className="text-muted-foreground text-xs mt-2">
-          {isLast ? 'TAP TO START' : 'TAP TO CONTINUE'}
-        </span>
+        {/* Action Button */}
+        <button
+          type=\"button\"
+          onClick={handleNext}
+          className=\"apple-pill-primary w-full py-3.5 text-sm font-semibold tracking-wide flex items-center justify-center gap-2 mt-1\"
+        >
+          <span>{isLast ? 'Begin Training' : 'Continue'}</span>
+          <span>→</span>
+        </button>
       </div>
     </div>
   );
