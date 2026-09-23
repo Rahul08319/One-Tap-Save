@@ -2,24 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>One Tap Goalkeeper</title>
-    <meta name="description" content="One Tap Goalkeeper - Save shots with a single tap! A fast-paced football reflex game." />
-    <meta name="author" content="Lovable" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>One Tap Goalkeeper - Reflex Challenge</title>
+    <meta name="description" content="One Tap Goalkeeper - Save shots with a single tap! A fast-paced penalty reflex game built with Apple Design aesthetics." />
+    <meta name="author" content="Rahul08319" />
+    <meta name="theme-color" content="#08140e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="One Tap Save" />
 
     <meta property="og:title" content="One Tap Goalkeeper" />
-    <meta property="og:description" content="Save shots with a single tap! A fast-paced football reflex game." />
+    <meta property="og:description" content="Save shots with a single tap! Fast-paced football reflex game." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!--
+      IMPORTANT: The YouTube Playables SDK MUST be loaded in the <head> before ANY game scripts.
+      When served locally, the SDK functions as a no-op fallback.
+      When submitted to YouTube, the CSP response headers must be strictly configured:
+      default-src 'none'; script-src 'report-sample' 'self' 'unsafe-eval' 'unsafe-inline' blob: https://www.youtube.com/game_api/v0 https://www.youtube.com/game_api/v0/ https://www.youtube.com/game_api/v1 https://www.youtube.com/game_api/v1/; ...
+    -->
     <script src="https://www.youtube.com/game_api/v1"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
 
-  <body>
+  <body class="bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
