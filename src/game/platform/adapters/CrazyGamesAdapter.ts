@@ -128,6 +128,9 @@ export class CrazyGamesAdapter implements IPlatformAdapter {
             this.notifyGameplayStart();
             resolve({ shown: false, error: String(err) });
           },
+        }).catch((err) => {
+          this.notifyGameplayStart();
+          resolve({ shown: false, error: String(err) });
         });
       });
     }
@@ -147,6 +150,9 @@ export class CrazyGamesAdapter implements IPlatformAdapter {
             this.notifyGameplayStart();
             resolve({ shown: false, rewardEarned: false, error: String(err) });
           },
+        }).catch((err) => {
+          this.notifyGameplayStart();
+          resolve({ shown: false, rewardEarned: false, error: String(err) });
         });
       });
     }

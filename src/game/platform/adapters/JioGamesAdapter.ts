@@ -37,7 +37,8 @@ export class JioGamesAdapter implements IPlatformAdapter {
   }
 
   notifyFirstFrameReady(): void {}
-  notifyGameReady(): void {}\n
+  notifyGameReady(): void {}
+
   isAudioEnabled(): boolean {
     return true;
   }
