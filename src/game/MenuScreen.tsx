@@ -7,8 +7,6 @@ import { hasDailyBeenPlayed, getDailyRecord } from './dailyChallenge';
 import { GameMode } from './useGameEngine';
 import { GLOVES, getLeague, getPlayerProfile, selectGlove } from './playerProgress';
 import { AccessibilitySettings, getAccessibilitySettings, saveAccessibilitySettings } from './accessibility';
-import { getCurrentPlatform, setTargetPlatform } from './youtubePlayables';
-import { PlatformType } from './platform/types';
 
 interface MenuScreenProps {
   onStart: (difficulty: Difficulty, mode?: GameMode) => void;
@@ -20,31 +18,11 @@ const DIFF_CONFIG: { key: Difficulty; label: string; desc: string }[] = [
   { key: 'hard', label: 'Pro', desc: 'Lightning-fast championship pace' },
 ];
 
-const PLATFORMS: { key: PlatformType; label: string }[] = [
-  { key: 'youtube', label: 'YouTube Playables' },
-  { key: 'poki', label: 'Poki' },
-  { key: 'crazygames', label: 'CrazyGames' },
-  { key: 'facebook', label: 'Facebook Instant' },
-  { key: 'yandex', label: 'Yandex Games' },
-  { key: 'gamedistribution', label: 'GameDistribution' },
-  { key: 'discord', label: 'Discord Activities' },
-  { key: 'jiogames', label: 'JioGames' },
-  { key: 'y8', label: 'Y8 Games' },
-  { key: 'lagged', label: 'Lagged' },
-  { key: 'msstore', label: 'Microsoft Store (PWA)' },
-  { key: 'quickgames', label: 'Huawei/Xiaomi Quick Games' },
-  { key: 'reddit', label: 'Reddit Games (Devvit)' },
-  { key: 'msn', label: 'MSN Games' },
-  { key: 'standalone', label: 'Standalone Web' },
-];
-
 export function MenuScreen({ onStart }: MenuScreenProps) {
   const [selected, setSelected] = useState<Difficulty>('medium');
   const [hapticsEnabled, setHapticsEnabledState] = useState(areHapticsEnabled());
   const [profile, setProfile] = useState(getPlayerProfile());
   const [accessibility, setAccessibility] = useState<AccessibilitySettings>(getAccessibilitySettings());
-  const [activePlatform, setActivePlatform] = useState<PlatformType>(getCurrentPlatform());
-  const [showPlatformSheet, setShowPlatformSheet] = useState(false);
 
   const highScores = getHighScores();
   const dailyPlayed = hasDailyBeenPlayed();
@@ -53,13 +31,6 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
   const handleSelectDiff = (d: Difficulty) => {
     setSelected(d);
     playMenuSelectSound();
-    hapticTap();
-  };
-
-  const handlePlatformChange = (p: PlatformType) => {
-    setTargetPlatform(p);
-    setActivePlatform(p);
-    setShowPlatformSheet(false);
     hapticTap();
   };
 
@@ -73,19 +44,6 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/90 backdrop-blur-2xl px-4 py-6 overflow-y-auto">
       <div className="w-full max-w-sm flex flex-col items-center gap-4 my-auto">
-        {/* Platform Indicator Chip */}
-        <button
-          type="button"
-          onClick={() => setShowPlatformSheet(true)}
-          className="apple-glass rounded-full px-3 py-1 flex items-center gap-1.5 active:scale-95 transition-transform"
-        >
-          <span className="w-2 h-2 rounded-full bg-primary" />
-          <span className="text-[11px] font-medium text-foreground">
-            {PLATFORMS.find((p) => p.key === activePlatform)?.label || activePlatform}
-          </span>
-          <span className="text-[10px] text-muted-foreground">▾</span>
-        </button>
-
         {/* Hero Title with Apple Optical Kerning */}
         <div className="flex flex-col items-center text-center">
           <div className="game-kicker mb-1">Night Match Penalty Challenge</div>
@@ -252,48 +210,6 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
           </button>
         </div>
       </div>
-
-      {/* Platform Selector Bottom Sheet Modal */}
-      {showPlatformSheet && (
-        <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm apple-glass rounded-3xl p-5 flex flex-col gap-3 shadow-2xl">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold text-foreground">Select Target Platform</span>
-              <button
-                type="button"
-                onClick={() => setShowPlatformSheet(false)}
-                className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Switch adapter mode without reloading or external SDK aggregators:
-            </p>
-
-            <div className="max-h-60 overflow-y-auto flex flex-col gap-1 pr-1">
-              {PLATFORMS.map((p) => {
-                const isActive = activePlatform === p.key;
-                return (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => handlePlatformChange(p.key)}
-                    className={`p-2.5 rounded-xl text-left text-xs font-medium flex justify-between items-center transition-all ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground font-semibold'
-                        : 'hover:bg-white/5 text-foreground'
-                    }`}
-                  >
-                    <span>{p.label}</span>
-                    {isActive && <span>✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -14,7 +14,6 @@ interface HUDProps {
   isDaily?: boolean;
   dailyRounds?: number;
   onPauseClick?: () => void;
-  platformName?: string;
 }
 
 export function HUD({
@@ -27,7 +26,6 @@ export function HUD({
   isDaily,
   dailyRounds,
   onPauseClick,
-  platformName,
 }: HUDProps) {
   const [muted, setMuted] = useState(isAudioMuted());
 
@@ -64,11 +62,6 @@ export function HUD({
           {score.streak >= 2 && (
             <span className="text-[11px] font-medium text-secondary flex items-center gap-0.5">
               🔥 {score.streak}
-            </span>
-          )}
-          {platformName && (
-            <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground/80 px-1 py-0.5 rounded bg-white/5">
-              {platformName}
             </span>
           )}
         </div>

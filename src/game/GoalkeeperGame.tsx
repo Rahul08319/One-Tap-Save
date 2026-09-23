@@ -11,7 +11,6 @@ import { StadiumLights } from './StadiumLights';
 import { getDailyRoundCount } from './dailyChallenge';
 import {
   applyYouTubeLanguage,
-  getCurrentPlatform,
   getInitialAudioEnabled,
   logPlayablesError,
   notifyFirstFrameReady,
@@ -195,7 +194,6 @@ export function GoalkeeperGame() {
             isDaily={gameMode === 'daily'}
             dailyRounds={getDailyRoundCount()}
             onPauseClick={pauseGame}
-            platformName={getCurrentPlatform()}
           />
           <DiveControls onDive={handleDive} gameState={gameState} />
         </>
