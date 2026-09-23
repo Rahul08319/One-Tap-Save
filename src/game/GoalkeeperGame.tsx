@@ -33,16 +33,7 @@ export function GoalkeeperGame() {
   const [showTutorial, setShowTutorial] = useState(shouldShowTutorial());
   const [profile, setProfile] = useState(getPlayerProfile());
 
-  const {
-    gameState, score, ballDirection, diveDirection, saved,
-    ballProgress, diveProgress, difficulty, selectedDifficulty,
-    screenShake, showConfetti, isNewHighScore,
-    comboMultiplier, showCombo, totalPoints,
-    gameMode, activePowerUp, showPowerUp,
-    isPaused, showReviveModal,
-    startGame, handleDive, pauseGame, resumeGame,
-    reviveWithAd, dismissRevive,
-  } = useGameEngine();
+  const {\n    gameState, score, ballDirection, diveDirection, saved,\n    ballProgress, diveProgress, difficulty, selectedDifficulty,\n    screenShake, showConfetti, isNewHighScore,\n    comboMultiplier, showCombo, totalPoints,\n    gameMode, activePowerUp, showPowerUp,\n    isPaused, showReviveModal,\n    startGame, handleDive, pauseGame, resumeGame,\n    reviveWithAd, dismissRevive,\n  } = useGameEngine();
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -88,7 +79,8 @@ export function GoalkeeperGame() {
     updateSize();
     const observer = new ResizeObserver(updateSize);
     if (containerRef.current) observer.observe(containerRef.current);
-    window.addEventListener('resize', updateSize);\n    return () => {
+    window.addEventListener('resize', updateSize);
+    return () => {
       observer.disconnect();
       window.removeEventListener('resize', updateSize);
     };
@@ -146,7 +138,8 @@ export function GoalkeeperGame() {
       <StadiumLights />
 
       {/* Apple Pause Modal */}
-      {isPaused && (\n        <ApplePauseModal
+      {isPaused && (
+        <ApplePauseModal
           saves={score.saves}
           streak={score.streak}
           onResume={resumeGame}
