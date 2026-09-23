@@ -10,6 +10,14 @@ export function setGameAudioEnabled(enabled: boolean) {
   if (!enabled && ctx.state === 'running') void ctx.suspend();
 }
 
+export function isAudioMuted(): boolean {
+  return !gameAudioEnabled;
+}
+
+export function isGameAudioEnabled(): boolean {
+  return gameAudioEnabled;
+}
+
 export function setGamePaused(paused: boolean) {
   gamePaused = paused;
   const ctx = (window as any).__gameAudioCtx as AudioContext | undefined;

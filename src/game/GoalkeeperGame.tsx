@@ -9,10 +9,23 @@ import { Confetti } from './Confetti';
 import { TutorialOverlay, shouldShowTutorial } from './TutorialOverlay';
 import { StadiumLights } from './StadiumLights';
 import { getDailyRoundCount } from './dailyChallenge';
-import { applyYouTubeLanguage, getInitialAudioEnabled, logPlayablesError, notifyFirstFrameReady, notifyGameReady, onYouTubeAudioEnabledChange, onYouTubePause, onYouTubeResume, restoreGameData } from './youtubePlayables';
+import {
+  applyYouTubeLanguage,
+  getCurrentPlatform,
+  getInitialAudioEnabled,
+  logPlayablesError,
+  notifyFirstFrameReady,
+  notifyGameReady,
+  onYouTubeAudioEnabledChange,
+  onYouTubePause,
+  onYouTubeResume,
+  restoreGameData,
+} from './youtubePlayables';
 import { setGameAudioEnabled } from './sounds';
 import { getAccessibilitySettings, saveAccessibilitySettings } from './accessibility';
 import { GLOVES, getPlayerProfile } from './playerProgress';
+import { ApplePauseModal } from './ApplePauseModal';
+import { AppleReviveModal } from './AppleReviveModal';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,7 +39,9 @@ export function GoalkeeperGame() {
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
     gameMode, activePowerUp, showPowerUp,
-    isPaused, startGame, handleDive, pauseGame, resumeGame,
+    isPaused, showReviveModal,
+    startGame, handleDive, pauseGame, resumeGame,
+    reviveWithAd, dismissRevive,
   } = useGameEngine();
 
   useEffect(() => {
@@ -73,8 +88,7 @@ export function GoalkeeperGame() {
     updateSize();
     const observer = new ResizeObserver(updateSize);
     if (containerRef.current) observer.observe(containerRef.current);
-    window.addEventListener('resize', updateSize);
-    return () => {
+    window.addEventListener('resize', updateSize);\n    return () => {
       observer.disconnect();
       window.removeEventListener('resize', updateSize);
     };
@@ -99,7 +113,14 @@ export function GoalkeeperGame() {
         else void containerRef.current?.requestFullscreen?.();
         return;
       }
-      if (gameState !== 'shooting' || isPaused) return;
+      if (event.key.toLowerCase() === 'p' || event.key === 'Escape') {
+        if (gameState === 'shooting' || gameState === 'result' || gameState === 'ready') {
+          if (isPaused) resumeGame();
+          else pauseGame();
+        }
+        return;
+      }
+      if (gameState !== 'shooting' || isPaused || showReviveModal) return;
       const direction = event.key === 'ArrowLeft' ? 'left' : event.key === 'ArrowRight' ? 'right' : event.key === 'ArrowUp' || event.key === ' ' ? 'center' : null;
       if (direction) {
         event.preventDefault();
@@ -108,7 +129,7 @@ export function GoalkeeperGame() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [gameState, isPaused, handleDive]);
+  }, [gameState, isPaused, showReviveModal, handleDive, pauseGame, resumeGame]);
 
   const handleStart = (diff: any, mode?: any) => {
     if (showTutorial) {
@@ -124,10 +145,26 @@ export function GoalkeeperGame() {
     >
       <StadiumLights />
 
-      {isPaused && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 text-primary font-display text-2xl tracking-widest">
-          PAUSED
-        </div>
+      {/* Apple Pause Modal */}
+      {isPaused && (\n        <ApplePauseModal
+          saves={score.saves}
+          streak={score.streak}
+          onResume={resumeGame}
+          onRestart={() => {
+            resumeGame();
+            startGame();
+          }}
+        />
+      )}
+
+      {/* Apple Rewarded Ad Second Chance Modal */}
+      {showReviveModal && (
+        <AppleReviveModal
+          saves={score.saves}
+          streak={score.bestStreak}
+          onRevive={reviveWithAd}
+          onDismiss={dismissRevive}
+        />
       )}
 
       <GameCanvas
@@ -155,6 +192,8 @@ export function GoalkeeperGame() {
             showPowerUp={showPowerUp}
             isDaily={gameMode === 'daily'}
             dailyRounds={getDailyRoundCount()}
+            onPauseClick={pauseGame}
+            platformName={getCurrentPlatform()}
           />
           <DiveControls onDive={handleDive} gameState={gameState} />
         </>
@@ -177,15 +216,14 @@ export function GoalkeeperGame() {
 
       {(gameState === 'shooting' || gameState === 'result' || gameState === 'ready') && (
         <div className="absolute bottom-[36%] left-0 right-0 flex justify-center gap-2 z-10 pointer-events-none">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`w-3 h-3 rounded-full border-2 ${
+              className={`w-3 h-3 rounded-full border-2 transition-all ${
                 i < score.goals
-                  ? 'bg-accent border-accent'
+                  ? 'bg-accent border-accent shadow-[0_0_10px_rgba(255,59,48,0.7)]'
                   : 'border-muted-foreground/30 bg-transparent'
               }`}
-              style={i < score.goals ? { boxShadow: 'var(--glow-accent)' } : {}}
             />
           ))}
         </div>

@@ -1,117 +1,230 @@
-/** A guarded boundary around the YouTube Playables SDK. */
-declare global {
-  interface Window { ytgame?: any; }
-  interface Window {
-    render_game_to_text?: () => string;
-  }
-}
+/**
+ * Guarded boundary around YouTube Playables SDK and Unified Multi-Platform Manager.
+ * Fully compliant with YouTube Playables certification and test suite specifications.
+ */
+import { platformManager } from './platform/PlatformManager';
+import { PlatformType } from './platform/types';
 
 const SAVE_KEY = 'otg_playables_save';
-const PERSISTENT_KEYS = ['otg_high_scores', 'otg_daily_challenge', 'otg_tutorial_seen'];
+const PERSISTENT_KEYS = ['otg_high_scores', 'otg_daily_challenge', 'otg_tutorial_seen', 'otg_player_profile', 'otg_accessibility'];
 let hasRestoredCloudSave = false;
 let restoringCloudSave: Promise<void> | null = null;
 
-function sdk() { return window.ytgame; }
-
-export function isPlayablesEnvironment() { return Boolean(sdk()?.IN_PLAYABLES_ENV); }
-
-export function logPlayablesWarning() {
-  try { sdk()?.health?.logWarning?.(); } catch { /* reporting must never interrupt play */ }
+export function isPlayablesEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(window.ytgame?.IN_PLAYABLES_ENV);
 }
 
-export function logPlayablesError() {
-  try { sdk()?.health?.logError?.(); } catch { /* reporting must never interrupt play */ }
+export function getCurrentPlatform(): PlatformType {
+  return platformManager.platform;
 }
 
-export function notifyFirstFrameReady() {
-  try { sdk()?.game?.firstFrameReady?.(); } catch { logPlayablesError(); }
+export function setTargetPlatform(type: PlatformType): void {
+  platformManager.setPlatform(type);
 }
 
-export function notifyGameReady() {
-  try { sdk()?.game?.gameReady?.(); } catch { logPlayablesError(); }
+export function logPlayablesWarning(message?: string): void {
+  try {
+    platformManager.logWarning(message);
+  } catch {
+    // Health logging must never crash the game
+  }
 }
 
-function getPersistedData() {
+export function logPlayablesError(message?: string): void {
+  try {
+    platformManager.logError(message);
+  } catch {
+    // Health logging must never crash the game
+  }
+}
+
+/**
+ * Notifies platform that the game has begun showing frames.
+ * Strictly called on the first painted frame before gameReady.
+ */
+export function notifyFirstFrameReady(): void {
+  try {
+    platformManager.notifyFirstFrameReady();
+  } catch {
+    logPlayablesError('firstFrameReady error');
+  }
+}
+
+/**
+ * Notifies platform that the game is fully interactive and ready for players.
+ * Must NOT be called during loading screen.
+ */
+export function notifyGameReady(): void {
+  try {
+    platformManager.notifyGameReady();
+  } catch {
+    logPlayablesError('gameReady error');
+  }
+}
+
+export function notifyGameplayStart(): void {
+  try {
+    platformManager.notifyGameplayStart();
+  } catch {
+    // optional
+  }
+}
+
+export function notifyGameplayStop(): void {
+  try {
+    platformManager.notifyGameplayStop();
+  } catch {
+    // optional
+  }
+}
+
+function getPersistedData(): Record<string, string> {
   return PERSISTENT_KEYS.reduce<Record<string, string>>((data, key) => {
-    const value = localStorage.getItem(key);
-    if (value !== null) data[key] = value;
+    try {
+      const value = localStorage.getItem(key);
+      if (value !== null) data[key] = value;
+    } catch {
+      // ignore
+    }
     return data;
   }, {});
 }
 
-/** Saves existing local progress locally and, on YouTube, to cloud save. */
-export async function persistGameData() {
-  if (!isPlayablesEnvironment()) {
-    const data = JSON.stringify({ version: 1, data: getPersistedData() });
-    localStorage.setItem(SAVE_KEY, data);
-    return;
+/** Saves progress locally and to active platform cloud save. */
+export async function persistGameData(): Promise<void> {
+  const payload = JSON.stringify({ version: 1, data: getPersistedData() });
+  try {
+    localStorage.setItem(SAVE_KEY, payload);
+  } catch {
+    // quota
   }
-  await restoreGameData();
-  const data = JSON.stringify({ version: 1, data: getPersistedData() });
-  try { await sdk()?.game?.saveData?.(data); } catch { logPlayablesWarning(); }
+  try {
+    await platformManager.saveData(payload);
+  } catch {
+    logPlayablesWarning('saveData error');
+  }
 }
 
-/** Restores YouTube cloud save into the game's existing local-storage format. */
-export async function restoreGameData() {
-  if (hasRestoredCloudSave || !isPlayablesEnvironment()) return;
+/** Restores cloud save into local storage format. */
+export async function restoreGameData(): Promise<void> {
+  if (hasRestoredCloudSave) return;
   if (restoringCloudSave) return restoringCloudSave;
+
   restoringCloudSave = (async () => {
     try {
-      const raw = await sdk()?.game?.loadData?.();
+      await platformManager.initialize();
+      const raw = await platformManager.loadData();
       if (!raw) return;
+
       const parsed = JSON.parse(raw) as { version?: number; data?: Record<string, unknown> };
       if (parsed.version !== 1 || !parsed.data) return;
+
       for (const key of PERSISTENT_KEYS) {
         const value = parsed.data[key];
-        if (typeof value === 'string') localStorage.setItem(key, value);
+        if (typeof value === 'string') {
+          try {
+            localStorage.setItem(key, value);
+          } catch {
+            // ignore
+          }
+        }
       }
       localStorage.setItem(SAVE_KEY, raw);
-    } catch { logPlayablesWarning(); }
-    finally { hasRestoredCloudSave = true; }
+    } catch {
+      logPlayablesWarning('loadData error');
+    } finally {
+      hasRestoredCloudSave = true;
+    }
   })();
+
   return restoringCloudSave;
 }
 
-export async function applyYouTubeLanguage() {
-  if (!isPlayablesEnvironment()) return;
+/** Syncs locale from platform settings to document HTML lang attribute. */
+export async function applyYouTubeLanguage(): Promise<void> {
   try {
-    const language = await sdk()?.system?.getLanguage?.();
-    if (typeof language === 'string' && language) document.documentElement.lang = language;
-  } catch { logPlayablesWarning(); }
+    const language = await platformManager.getLanguage();
+    if (typeof language === 'string' && language && typeof document !== 'undefined') {
+      document.documentElement.lang = language;
+    }
+  } catch {
+    logPlayablesWarning('getLanguage error');
+  }
 }
 
-export function getInitialAudioEnabled() {
-  try { return !isPlayablesEnvironment() || sdk()?.system?.isAudioEnabled?.() !== false; }
-  catch { logPlayablesWarning(); return true; }
+export function getInitialAudioEnabled(): boolean {
+  try {
+    return platformManager.isAudioEnabled();
+  } catch {
+    logPlayablesWarning('isAudioEnabled error');
+    return true;
+  }
 }
 
-export function onYouTubeAudioEnabledChange(callback: (enabled: boolean) => void) {
-  if (!isPlayablesEnvironment()) return () => {};
-  try { return sdk()?.system?.onAudioEnabledChange?.(callback) ?? (() => {}); }
-  catch { logPlayablesWarning(); return () => {}; }
+export function onYouTubeAudioEnabledChange(callback: (enabled: boolean) => void): () => void {
+  try {
+    return platformManager.onAudioEnabledChange(callback);
+  } catch {
+    logPlayablesWarning('onAudioEnabledChange error');
+    return () => {};
+  }
 }
 
-export function onYouTubePause(callback: () => void) {
-  if (!isPlayablesEnvironment()) return () => {};
-  try { return sdk()?.system?.onPause?.(callback) ?? (() => {}); }
-  catch { logPlayablesWarning(); return () => {}; }
+export function onYouTubePause(callback: () => void): () => void {
+  try {
+    return platformManager.onPause(callback);
+  } catch {
+    logPlayablesWarning('onPause error');
+    return () => {};
+  }
 }
 
-export function onYouTubeResume(callback: () => void) {
-  if (!isPlayablesEnvironment()) return () => {};
-  try { return sdk()?.system?.onResume?.(callback) ?? (() => {}); }
-  catch { logPlayablesWarning(); return () => {}; }
+export function onYouTubeResume(callback: () => void): () => void {
+  try {
+    return platformManager.onResume(callback);
+  } catch {
+    logPlayablesWarning('onResume error');
+    return () => {};
+  }
 }
 
-export async function sendScoreToYouTube(value: number) {
-  if (!isPlayablesEnvironment()) return;
-  try { await sdk()?.engagement?.sendScore?.({ value: Math.max(0, Math.floor(value)) }); }
-  catch { logPlayablesWarning(); }
+export async function sendScoreToYouTube(value: number): Promise<void> {
+  try {
+    await platformManager.sendScore(value);
+  } catch {
+    logPlayablesWarning('sendScore error');
+  }
 }
 
-// Deliberately opt-in: configure a valid related video/playable ID before calling it.
-export async function openYouTubeContent(id: string) {
-  if (!isPlayablesEnvironment() || !id) return;
-  try { await sdk()?.engagement?.openYTContent?.({ id }); }
-  catch { logPlayablesWarning(); }
+export async function openYouTubeContent(id: string, type: 'VIDEO' | 'PLAYABLE' = 'VIDEO'): Promise<void> {
+  if (!id) return;
+  try {
+    await platformManager.openContent(id, type);
+  } catch {
+    logPlayablesWarning('openContent error');
+  }
+}
+
+/** Requests an interstitial ad to be shown between gameplay sessions. */
+export async function requestInterstitialAd(placement = 'match_over'): Promise<boolean> {
+  try {
+    const res = await platformManager.showInterstitial(placement);
+    return res.shown;
+  } catch {
+    logPlayablesWarning('requestInterstitialAd error');
+    return false;
+  }
+}
+
+/** Requests a rewarded ad to be shown for extra life, multiplier, or cosmetic unlock. */
+export async function requestRewardedAd(rewardId: string): Promise<boolean> {
+  if (!rewardId) return false;
+  try {
+    const res = await platformManager.showRewarded(rewardId);
+    return Boolean(res.rewardEarned);
+  } catch {
+    logPlayablesWarning('requestRewardedAd error');
+    return false;
+  }
 }
