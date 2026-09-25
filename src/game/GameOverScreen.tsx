@@ -3,8 +3,7 @@ import { getHighScores } from './highScores';
 import { getDailyRecord } from './dailyChallenge';
 import { useEffect, useState } from 'react';
 import { getLeague, getPlayerProfile, recordMatch } from './playerProgress';
-import { requestInterstitialAd, requestRewardedAd } from './youtubePlayables';
-import { hapticStreak, hapticTap } from './haptics';
+import { hapticTap } from './haptics';
 
 interface GameOverScreenProps {
   score: GameScore;
@@ -30,8 +29,6 @@ export function GameOverScreen({
   const [showHighlights, setShowHighlights] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [totalPoints, setTotalPoints] = useState(initialTotalPoints);
-  const [hasClaimedDouble, setHasClaimedDouble] = useState(false);
-  const [isLoadingAd, setIsLoadingAd] = useState(false);
 
   useEffect(() => {
     setProfile(recordMatch(score.saves, initialTotalPoints));
@@ -52,24 +49,8 @@ export function GameOverScreen({
     }
   };
 
-  const handleDoublePoints = async () => {
-    if (hasClaimedDouble || isLoadingAd) return;
-    setIsLoadingAd(true);
-    const earned = await requestRewardedAd('double-match-points');
-    setIsLoadingAd(false);
-    if (earned) {
-      const doubled = totalPoints * 2;
-      setTotalPoints(doubled);
-      setHasClaimedDouble(true);
-      setProfile(recordMatch(0, totalPoints));
-      hapticStreak();
-    }
-  };
-
-  const handleRestart = async () => {
+  const handleRestart = () => {
     hapticTap();
-    // Interstitial ad trigger between matches
-    void requestInterstitialAd('game_over_retry');
     onRestart();
   };
 
@@ -132,31 +113,6 @@ export function GameOverScreen({
             <span className="text-[11px] font-medium text-muted-foreground mt-1">Points</span>
           </div>
         </div>
-
-        {/* Rewarded Ad Offer: Double Points */}
-        {!hasClaimedDouble && totalPoints > 0 && (
-          <button
-            type="button"
-            onClick={handleDoublePoints}
-            disabled={isLoadingAd}
-            className="w-full apple-glass-card rounded-2xl p-3 flex items-center justify-between border-secondary/40 hover:border-secondary transition-all active:scale-98"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="text-xl">🎁</span>
-              <div className="text-left">
-                <div className="text-xs font-semibold text-secondary">
-                  Watch Ad to 2x Points (+{totalPoints} pts)
-                </div>
-                <div className="text-[10px] text-muted-foreground">
-                  Boost your league XP and unlock gloves faster
-                </div>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-secondary px-2.5 py-1 rounded-full bg-secondary/15">
-              {isLoadingAd ? 'Loading...' : 'Claim 2X'}
-            </span>
-          </button>
-        )}
 
         {/* Player Profile & League Progress */}
         <div className="w-full apple-glass-card rounded-2xl p-3 flex items-center justify-between text-xs">

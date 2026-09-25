@@ -5,7 +5,7 @@ import { updateHighScore } from './highScores';
 import { hapticSave, hapticGoal, hapticStreak, hapticPowerUp } from './haptics';
 import { getDailyShotSequence, getDailyRoundCount, saveDailyRecord } from './dailyChallenge';
 import { ActivePowerUp, shouldAwardPowerUp, getRandomPowerUp, POWER_UP_CONFIG } from './powerUps';
-import { persistGameData, sendScoreToYouTube, requestRewardedAd, notifyGameplayStart, notifyGameplayStop } from './youtubePlayables';
+import { persistGameData, sendScoreToYouTube, notifyGameplayStart, notifyGameplayStop } from './youtubePlayables';
 
 const MAX_GOALS = 3;
 
@@ -41,8 +41,6 @@ export function useGameEngine() {
   const [showPowerUp, setShowPowerUp] = useState(false);
   const [wideDiveActive, setWideDiveActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [showReviveModal, setShowReviveModal] = useState(false);
-  const [hasRevived, setHasRevived] = useState(false);
 
   const animFrameRef = useRef<number>(0);
   const hasInputRef = useRef(false);
@@ -68,8 +66,6 @@ export function useGameEngine() {
     setActivePowerUp(null);
     setShowPowerUp(false);
     setWideDiveActive(false);
-    setShowReviveModal(false);
-    setHasRevived(false);
 
     if (mode === 'daily') {
       dailySequenceRef.current = getDailyShotSequence();
@@ -109,11 +105,11 @@ export function useGameEngine() {
   }, [gameMode, activePowerUp]);
 
   const handleDive = useCallback((dir: Direction) => {
-    if (isPaused || hasInputRef.current || gameState !== 'shooting' || showReviveModal) return;
+    if (isPaused || hasInputRef.current || gameState !== 'shooting') return;
     hasInputRef.current = true;
     ballProgressAtDiveRef.current = ballProgress;
     setDiveDirection(dir);
-  }, [gameState, ballProgress, isPaused, showReviveModal]);
+  }, [gameState, ballProgress, isPaused]);
 
   const pauseGame = useCallback(() => {
     setIsPaused(true);
@@ -138,37 +134,12 @@ export function useGameEngine() {
     notifyGameplayStop();
     void persistGameData();
     void sendScoreToYouTube(finalScore.saves);
-    setShowReviveModal(false);
     setGameState('gameover');
   }, [gameMode, totalPoints, selectedDifficulty]);
 
-  const reviveWithAd = useCallback(async (): Promise<boolean> => {
-    try {
-      const earned = await requestRewardedAd('extra-life-revive');
-      if (earned) {
-        setHasRevived(true);
-        setShowReviveModal(false);
-        setScore(prev => ({
-          ...prev,
-          goals: Math.max(0, MAX_GOALS - 1), // Remove 1 goal
-        }));
-        hapticStreak();
-        setGameState('result');
-        return true;
-      }
-    } catch {
-      // fallback
-    }
-    return false;
-  }, []);
-
-  const dismissRevive = useCallback(() => {
-    finalizeGameOver(score);
-  }, [finalizeGameOver, score]);
-
   // Animation loop
   useEffect(() => {
-    if (gameState !== 'shooting' || isPaused || showReviveModal) return;
+    if (gameState !== 'shooting' || isPaused) return;
 
     const { base, increment } = DIFFICULTY_SPEEDS[selectedDifficulty];
     let speed = base + difficulty * increment;
@@ -269,12 +240,7 @@ export function useGameEngine() {
                 : newScore.goals >= MAX_GOALS;
 
               if (isGameOver) {
-                // Offer Second Chance via Rewarded Ad in classic mode once per run
-                if (!hasRevived && gameMode === 'classic') {
-                  setShowReviveModal(true);
-                } else {
-                  finalizeGameOver(newScore);
-                }
+                finalizeGameOver(newScore);
               } else {
                 setGameState('result');
               }
@@ -294,23 +260,23 @@ export function useGameEngine() {
 
     animFrameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier, activePowerUp, wideDiveActive, gameMode, totalPoints, isPaused, showReviveModal, hasRevived, finalizeGameOver]);
+  }, [gameState, diveDirection, ballDirection, difficulty, selectedDifficulty, comboDirection, comboMultiplier, activePowerUp, wideDiveActive, gameMode, totalPoints, isPaused, finalizeGameOver]);
 
   // Auto-start round after result
   useEffect(() => {
-    if (gameState === 'result' && !isPaused && !showReviveModal) {
+    if (gameState === 'result' && !isPaused) {
       const t = setTimeout(startRound, 1200);
       return () => clearTimeout(t);
     }
-  }, [gameState, startRound, isPaused, showReviveModal]);
+  }, [gameState, startRound, isPaused]);
 
   // Auto-start first round
   useEffect(() => {
-    if (gameState === 'ready' && !isPaused && !showReviveModal) {
+    if (gameState === 'ready' && !isPaused) {
       const t = setTimeout(startRound, 600);
       return () => clearTimeout(t);
     }
-  }, [gameState, startRound, isPaused, showReviveModal]);
+  }, [gameState, startRound, isPaused]);
 
   // Cleanup crowd on unmount
   useEffect(() => {
@@ -323,8 +289,7 @@ export function useGameEngine() {
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
     gameMode, activePowerUp, showPowerUp,
-    isPaused, showReviveModal, hasRevived,
+    isPaused,
     startGame, handleDive, pauseGame, resumeGame,
-    reviveWithAd, dismissRevive,
   };
 }

@@ -24,7 +24,6 @@ import { setGameAudioEnabled } from './sounds';
 import { getAccessibilitySettings, saveAccessibilitySettings } from './accessibility';
 import { GLOVES, getPlayerProfile } from './playerProgress';
 import { ApplePauseModal } from './ApplePauseModal';
-import { AppleReviveModal } from './AppleReviveModal';
 
 export function GoalkeeperGame() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,9 +37,8 @@ export function GoalkeeperGame() {
     screenShake, showConfetti, isNewHighScore,
     comboMultiplier, showCombo, totalPoints,
     gameMode, activePowerUp, showPowerUp,
-    isPaused, showReviveModal,
+    isPaused,
     startGame, handleDive, pauseGame, resumeGame,
-    reviveWithAd, dismissRevive,
   } = useGameEngine();
 
   useEffect(() => {
@@ -126,7 +124,7 @@ export function GoalkeeperGame() {
         }
         return;
       }
-      if (gameState !== 'shooting' || isPaused || showReviveModal) return;
+      if (gameState !== 'shooting' || isPaused) return;
       const direction = event.key === 'ArrowLeft' ? 'left' : event.key === 'ArrowRight' ? 'right' : event.key === 'ArrowUp' || event.key === ' ' ? 'center' : null;
       if (direction) {
         event.preventDefault();
@@ -135,7 +133,7 @@ export function GoalkeeperGame() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [gameState, isPaused, showReviveModal, handleDive, pauseGame, resumeGame]);
+  }, [gameState, isPaused, handleDive, pauseGame, resumeGame]);
 
   const handleStart = (diff: any, mode?: any) => {
     if (showTutorial) {
@@ -161,16 +159,6 @@ export function GoalkeeperGame() {
             resumeGame();
             startGame();
           }}
-        />
-      )}
-
-      {/* Apple Rewarded Ad Second Chance Modal */}
-      {showReviveModal && (
-        <AppleReviveModal
-          saves={score.saves}
-          streak={score.bestStreak}
-          onRevive={reviveWithAd}
-          onDismiss={dismissRevive}
         />
       )}
 

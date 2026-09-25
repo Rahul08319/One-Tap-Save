@@ -213,26 +213,3 @@ export async function openYouTubeContent(id: string, type: 'VIDEO' | 'PLAYABLE' 
     logPlayablesWarning('openContent error');
   }
 }
-
-/** Requests an interstitial ad to be shown between gameplay sessions. */
-export async function requestInterstitialAd(placement = 'match_over'): Promise<boolean> {
-  try {
-    const res = await platformManager.showInterstitial(placement);
-    return res.shown;
-  } catch {
-    logPlayablesWarning('requestInterstitialAd error');
-    return false;
-  }
-}
-
-/** Requests a rewarded ad to be shown for extra life, multiplier, or cosmetic unlock. */
-export async function requestRewardedAd(rewardId: string): Promise<boolean> {
-  if (!rewardId) return false;
-  try {
-    const res = await platformManager.showRewarded(rewardId);
-    return Boolean(res.rewardEarned);
-  } catch {
-    logPlayablesWarning('requestRewardedAd error');
-    return false;
-  }
-}
