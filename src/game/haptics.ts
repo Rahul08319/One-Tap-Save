@@ -1,4 +1,6 @@
 // Haptic feedback for mobile devices using Vibration API.
+import { persistGameData } from './youtubePlayables';
+
 const HAPTICS_KEY = 'otg_haptics_enabled';
 
 export function areHapticsEnabled() {
@@ -7,6 +9,7 @@ export function areHapticsEnabled() {
 
 export function setHapticsEnabled(enabled: boolean) {
   localStorage.setItem(HAPTICS_KEY, String(enabled));
+  void persistGameData();
 }
 
 function vibrate(pattern: VibratePattern) {

@@ -1,3 +1,5 @@
+import { persistGameData } from './youtubePlayables';
+
 export type GloveId = 'classic' | 'neon' | 'crimson';
 
 export interface PlayerProfile {
@@ -33,6 +35,7 @@ export function getPlayerProfile(): PlayerProfile {
 function save(profile: PlayerProfile) {
   localStorage.setItem(KEY, JSON.stringify(profile));
   window.dispatchEvent(new Event('otg-profile-change'));
+  void persistGameData();
   return profile;
 }
 

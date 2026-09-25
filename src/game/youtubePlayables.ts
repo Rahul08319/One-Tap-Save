@@ -6,7 +6,14 @@ import { platformManager } from './platform/PlatformManager';
 import { PlatformType } from './platform/types';
 
 const SAVE_KEY = 'otg_playables_save';
-const PERSISTENT_KEYS = ['otg_high_scores', 'otg_daily_challenge', 'otg_tutorial_seen', 'otg_player_profile', 'otg_accessibility'];
+const PERSISTENT_KEYS = [
+  'otg_high_scores',
+  'otg_daily_challenge',
+  'otg_tutorial_seen',
+  'otg_player_profile',
+  'otg_accessibility',
+  'otg_haptics_enabled',
+];
 let hasRestoredCloudSave = false;
 let restoringCloudSave: Promise<void> | null = null;
 
@@ -131,6 +138,7 @@ export async function restoreGameData(): Promise<void> {
         }
       }
       localStorage.setItem(SAVE_KEY, raw);
+      window.dispatchEvent(new Event('otg-playables-data-restored'));
     } catch {
       logPlayablesWarning('loadData error');
     } finally {

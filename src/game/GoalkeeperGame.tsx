@@ -59,7 +59,12 @@ export function GoalkeeperGame() {
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onError);
     const refreshProfile = () => setProfile(getPlayerProfile());
+    const applyRestoredPreferences = () => {
+      refreshProfile();
+      saveAccessibilitySettings(getAccessibilitySettings());
+    };
     window.addEventListener('otg-profile-change', refreshProfile);
+    window.addEventListener('otg-playables-data-restored', applyRestoredPreferences);
     return () => {
       cancelAnimationFrame(frame);
       stopAudioListener();
@@ -68,6 +73,7 @@ export function GoalkeeperGame() {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onError);
       window.removeEventListener('otg-profile-change', refreshProfile);
+      window.removeEventListener('otg-playables-data-restored', applyRestoredPreferences);
     };
   }, [pauseGame, resumeGame]);
 

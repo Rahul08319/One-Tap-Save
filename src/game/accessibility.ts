@@ -1,3 +1,5 @@
+import { persistGameData } from './youtubePlayables';
+
 export interface AccessibilitySettings {
   reducedMotion: boolean;
   highContrast: boolean;
@@ -17,4 +19,5 @@ export function saveAccessibilitySettings(settings: AccessibilitySettings) {
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   document.documentElement.classList.toggle('high-contrast', settings.highContrast);
   window.dispatchEvent(new Event('otg-accessibility-change'));
+  void persistGameData();
 }

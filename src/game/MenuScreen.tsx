@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Difficulty } from './types';
 import { getHighScores } from './highScores';
 import { playMenuSelectSound } from './sounds';
@@ -27,6 +27,16 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
   const highScores = getHighScores();
   const dailyPlayed = hasDailyBeenPlayed();
   const dailyRecord = getDailyRecord();
+
+  useEffect(() => {
+    const refreshRestoredData = () => {
+      setHapticsEnabledState(areHapticsEnabled());
+      setProfile(getPlayerProfile());
+      setAccessibility(getAccessibilitySettings());
+    };
+    window.addEventListener('otg-playables-data-restored', refreshRestoredData);
+    return () => window.removeEventListener('otg-playables-data-restored', refreshRestoredData);
+  }, []);
 
   const handleSelectDiff = (d: Difficulty) => {
     setSelected(d);
