@@ -50,10 +50,10 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-2xl p-6">
       <div
-        className="w-full max-w-sm apple-glass rounded-3xl p-7 flex flex-col items-center gap-5 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="w-full max-w-sm game-panel rounded-xl p-7 flex flex-col items-center gap-5 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200"
         key={step}
       >
-        <div className="w-16 h-16 rounded-2xl apple-glass-card flex items-center justify-center text-4xl shadow-inner">
+        <div className="w-16 h-16 rounded-xl game-card flex items-center justify-center text-4xl shadow-inner">
           {current.emoji}
         </div>
 
@@ -71,7 +71,7 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
             {['← Left', '↑ Center', '→ Right'].map((label) => (
               <div
                 key={label}
-                className="flex-1 py-2 rounded-xl apple-glass-card border-primary/30 text-primary font-semibold text-xs text-center"
+                className="flex-1 py-2 rounded-lg game-card border-primary/30 text-primary font-semibold text-xs text-center"
               >
                 {label}
               </div>
@@ -79,7 +79,7 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
           </div>
         )}
 
-        {/* Apple Step Indicator Dots */}
+        {/* Training steps */}
         <div className="flex items-center gap-1.5 mt-2">
           {steps.map((_, i) => (
             <div
@@ -95,7 +95,7 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
         <button
           type="button"
           onClick={handleNext}
-          className="apple-pill-primary w-full py-3.5 text-sm font-semibold tracking-wide flex items-center justify-center gap-2 mt-1"
+          className="game-action w-full py-3.5 text-sm font-semibold tracking-wide flex items-center justify-center gap-2 mt-1"
         >
           <span>{isLast ? 'Begin Training' : 'Continue'}</span>
           <span>→</span>

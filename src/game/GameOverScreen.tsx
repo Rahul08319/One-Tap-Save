@@ -59,7 +59,7 @@ export function GameOverScreen({
       <div className="w-full max-w-sm flex flex-col items-center gap-4 my-auto">
         {/* Header Icon & Title */}
         <div className="flex flex-col items-center gap-1 text-center">
-          <div className="w-14 h-14 rounded-2xl apple-glass flex items-center justify-center text-3xl shadow-lg mb-1">
+          <div className="w-14 h-14 rounded-xl game-panel flex items-center justify-center text-3xl shadow-lg mb-1">
             {isDaily ? '📅' : isNewHighScore ? '🏆' : '⚽'}
           </div>
 
@@ -78,7 +78,7 @@ export function GameOverScreen({
 
         {/* High Score Banner */}
         {isNewHighScore && !isDaily && (
-          <div className="apple-glass rounded-full px-4 py-1.5 border-[#ffd60a]/40 bg-[#ffd60a]/10 flex items-center gap-2 animate-bounce">
+          <div className="game-panel rounded-xl px-4 py-1.5 border-[#ffd60a]/40 bg-[#ffd60a]/10 flex items-center gap-2 animate-bounce">
             <span>✨</span>
             <span className="text-xs font-semibold text-[#ffd60a] tracking-wide">
               NEW PERSONAL BEST RECORD!
@@ -86,8 +86,8 @@ export function GameOverScreen({
           </div>
         )}
 
-        {/* Core Match Stats Grid - Apple Museum Style */}
-        <div className="w-full apple-glass rounded-2xl p-4 flex justify-around items-center">
+        {/* Match stats */}
+        <div className="w-full game-panel rounded-xl p-4 flex justify-around items-center">
           <div className="flex flex-col items-center">
             <span className="font-display text-4xl font-bold text-primary leading-none">
               {score.saves}
@@ -115,7 +115,7 @@ export function GameOverScreen({
         </div>
 
         {/* Player Profile & League Progress */}
-        <div className="w-full apple-glass-card rounded-2xl p-3 flex items-center justify-between text-xs">
+        <div className="w-full game-card rounded-xl p-3 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <span className="text-lg">🧤</span>
             <div>
@@ -126,7 +126,7 @@ export function GameOverScreen({
           <button
             type="button"
             onClick={copyChallengeCode}
-            className="apple-pill-secondary text-[11px] py-1 px-3"
+            className="game-secondary-action text-[11px] py-1 px-3"
           >
             {copiedCode ? '✓ Copied' : 'Share Challenge'}
           </button>
@@ -142,7 +142,7 @@ export function GameOverScreen({
         </button>
 
         {showHighlights && (
-          <div className="w-full apple-glass-card rounded-2xl p-3.5 flex flex-col gap-2 text-xs">
+          <div className="w-full game-card rounded-xl p-3.5 flex flex-col gap-2 text-xs">
             <div className="flex justify-between text-muted-foreground">
               <span>Difficulty Mode:</span>
               <span className="font-medium text-foreground uppercase">{difficulty}</span>
@@ -169,7 +169,7 @@ export function GameOverScreen({
         {/* Primary Action Button */}
         <button
           onClick={handleRestart}
-          className="apple-pill-primary w-full py-3.5 text-base font-semibold tracking-wide mt-1 flex items-center justify-center gap-2"
+          className="game-action w-full py-3.5 text-base font-semibold tracking-wide mt-1 flex items-center justify-center gap-2"
         >
           <span>{isDaily ? 'Return to Menu' : 'Play Again'}</span>
           <span>→</span>

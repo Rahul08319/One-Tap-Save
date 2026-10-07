@@ -20,7 +20,7 @@ export function DiveControls({ onDive, gameState, leftHanded = false }: DiveCont
         aria-label="Dive Left"
       >
         <div className="flex flex-col items-center opacity-45 group-hover:opacity-70 group-active:opacity-100 group-active:scale-110 transition-all duration-100">
-          <div className="w-12 h-12 rounded-full apple-glass-card flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full game-card flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-foreground">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -40,7 +40,7 @@ export function DiveControls({ onDive, gameState, leftHanded = false }: DiveCont
         aria-label="Dive Center"
       >
         <div className="flex flex-col items-center opacity-45 group-hover:opacity-70 group-active:opacity-100 group-active:scale-110 transition-all duration-100">
-          <div className="w-12 h-12 rounded-full apple-glass-card flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full game-card flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-foreground">
               <path d="M12 19V5M5 12l7-7 7 7" />
             </svg>
@@ -60,7 +60,7 @@ export function DiveControls({ onDive, gameState, leftHanded = false }: DiveCont
         aria-label="Dive Right"
       >
         <div className="flex flex-col items-center opacity-45 group-hover:opacity-70 group-active:opacity-100 group-active:scale-110 transition-all duration-100">
-          <div className="w-12 h-12 rounded-full apple-glass-card flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full game-card flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-foreground">
               <path d="M9 18l6-6-6-6" />
             </svg>

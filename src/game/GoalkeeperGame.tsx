@@ -149,7 +149,7 @@ export function GoalkeeperGame() {
     >
       <StadiumLights />
 
-      {/* Apple Pause Modal */}
+      {/* Match pause overlay */}
       {isPaused && (
         <ApplePauseModal
           saves={score.saves}

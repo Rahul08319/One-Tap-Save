@@ -54,7 +54,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-background/90 backdrop-blur-2xl px-4 py-6 overflow-y-auto">
       <div className="w-full max-w-sm flex flex-col items-center gap-4 my-auto">
-        {/* Hero Title with Apple Optical Kerning */}
+        {/* Match title */}
         <div className="flex flex-col items-center text-center">
           <div className="game-kicker mb-1">Night Match Penalty Challenge</div>
           <h1 className="font-display text-5xl sm:text-6xl font-semibold text-foreground tracking-tight leading-[0.95]">
@@ -65,8 +65,8 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
           </p>
         </div>
 
-        {/* Apple Segmented Control for Difficulty */}
-        <div className="w-full apple-glass rounded-full p-1 flex">
+        {/* Match difficulty */}
+        <div className="w-full game-panel rounded-xl p-1 flex">
           {DIFF_CONFIG.map((d) => {
             const isSel = selected === d.key;
             return (
@@ -91,7 +91,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
 
         {/* Best Score Summary */}
         {highScores[selected].saves > 0 && (
-          <div className="apple-glass-card rounded-2xl px-6 py-2 flex items-center gap-6">
+          <div className="game-card rounded-xl px-6 py-2 flex items-center gap-6">
             <div className="text-center">
               <div className="font-display text-2xl font-bold text-primary leading-none">
                 {highScores[selected].saves}
@@ -113,7 +113,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
         )}
 
         {/* Glove Locker / Customization Tile */}
-        <div className="w-full apple-glass-card rounded-2xl p-3 flex flex-col gap-2">
+        <div className="w-full game-card rounded-xl p-3 flex flex-col gap-2">
           <div className="flex justify-between items-center text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">
             <span>{getLeague(profile)} League</span>
             <span>{profile.xp} XP</span>
@@ -159,7 +159,7 @@ export function MenuScreen({ onStart }: MenuScreenProps) {
               hapticTap();
               onStart(selected, 'classic');
             }}
-            className="apple-pill-primary w-full py-4 text-lg font-semibold tracking-wide flex items-center justify-center gap-2"
+            className="game-action w-full py-4 text-lg font-semibold tracking-wide flex items-center justify-center gap-2"
           >
             <span>Kick Off Match</span>
             <span>→</span>

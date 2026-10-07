@@ -29,9 +29,9 @@ export function ApplePauseModal({ saves, streak, onResume, onRestart }: ApplePau
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xl p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-xs apple-glass rounded-3xl p-6 flex flex-col items-center gap-5 text-center shadow-2xl">
-        {/* Apple Status Indicator */}
-        <div className="w-12 h-12 rounded-full apple-glass-card flex items-center justify-center text-xl">
+      <div className="w-full max-w-xs game-panel rounded-xl p-6 flex flex-col items-center gap-5 text-center shadow-2xl">
+        {/* Match pause indicator */}
+        <div className="w-12 h-12 rounded-full game-card flex items-center justify-center text-xl">
           ⏸
         </div>
 
@@ -78,7 +78,7 @@ export function ApplePauseModal({ saves, streak, onResume, onRestart }: ApplePau
               hapticTap();
               onResume();
             }}
-            className="apple-pill-primary w-full py-3 text-sm font-semibold tracking-wide"
+            className="game-action w-full py-3 text-sm font-semibold tracking-wide"
           >
             Resume Match
           </button>
@@ -89,7 +89,7 @@ export function ApplePauseModal({ saves, streak, onResume, onRestart }: ApplePau
               hapticTap();
               onRestart();
             }}
-            className="apple-pill-secondary w-full py-2.5 text-xs text-muted-foreground hover:text-foreground"
+            className="game-secondary-action w-full py-2.5 text-xs text-muted-foreground hover:text-foreground"
           >
             End Match & Restart
           </button>

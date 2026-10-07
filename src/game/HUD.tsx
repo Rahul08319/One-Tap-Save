@@ -37,10 +37,10 @@ export function HUD({
 
   return (
     <div className="absolute top-0 left-0 right-0 flex flex-col items-center pt-3 px-3 z-20 pointer-events-none">
-      {/* Apple Dynamic Island Top Bar */}
+      {/* Match HUD */}
       <div className="w-full max-w-md flex justify-between items-center gap-2">
         {/* Saves Pill */}
-        <div className="apple-glass rounded-full px-3.5 py-1.5 flex items-center gap-2 pointer-events-auto">
+        <div className="game-panel rounded-lg px-3.5 py-1.5 flex items-center gap-2 pointer-events-auto">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <div className="flex flex-col">
             <span className="font-display text-xl leading-none text-foreground">
@@ -55,7 +55,7 @@ export function HUD({
         </div>
 
         {/* Center Round & Streak Capsule */}
-        <div className="apple-glass rounded-full px-4 py-1.5 flex items-center gap-2">
+        <div className="game-panel rounded-lg px-4 py-1.5 flex items-center gap-2">
           <span className="text-xs font-semibold text-foreground tracking-tight">
             {isDaily ? `Day ${score.round}/${dailyRounds}` : `Round ${score.round}`}
           </span>
@@ -71,7 +71,7 @@ export function HUD({
           <button
             type="button"
             onClick={toggleMute}
-            className="apple-glass w-8 h-8 rounded-full flex items-center justify-center text-xs text-foreground active:scale-90 transition-transform"
+            className="game-panel w-8 h-8 rounded-full flex items-center justify-center text-xs text-foreground active:scale-90 transition-transform"
             aria-label={muted ? 'Unmute game' : 'Mute game'}
           >
             {muted ? '🔇' : '🔊'}
@@ -80,7 +80,7 @@ export function HUD({
             <button
               type="button"
               onClick={onPauseClick}
-              className="apple-glass w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-foreground active:scale-90 transition-transform"
+              className="game-panel w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-foreground active:scale-90 transition-transform"
               aria-label="Pause game"
             >
               ⏸
@@ -91,7 +91,7 @@ export function HUD({
 
       {/* Combo Banner */}
       {showCombo && comboMultiplier >= 2 && (
-        <div className="mt-2 apple-glass-card rounded-full px-4 py-1 flex items-center gap-1.5 border-secondary/40 shadow-lg animate-bounce">
+        <div className="mt-2 game-card rounded-lg px-4 py-1 flex items-center gap-1.5 border-secondary/40 shadow-lg animate-bounce">
           <span className="text-sm">⚡</span>
           <span className="text-xs font-bold text-secondary tracking-wide">
             {comboMultiplier}X COMBO BONUS!
@@ -102,7 +102,7 @@ export function HUD({
       {/* Active Power-up Pill */}
       {activePowerUp && (
         <div
-          className={`mt-2 apple-glass rounded-full px-3.5 py-1 flex items-center gap-2 border-secondary/30 ${
+          className={`mt-2 game-panel rounded-lg px-3.5 py-1 flex items-center gap-2 border-secondary/30 ${
             showPowerUp ? 'scale-105 transition-transform' : ''
           }`}
         >
